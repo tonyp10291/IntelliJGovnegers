@@ -1,4 +1,4 @@
-package kr.co.govengers.config;
+package kr.com.GoGiProject.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
