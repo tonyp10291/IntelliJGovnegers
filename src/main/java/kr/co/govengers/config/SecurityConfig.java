@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/join").permitAll()
+                .requestMatchers("/api/login", "/api/join").permitAll()
                 .anyRequest().authenticated()
                 );
 

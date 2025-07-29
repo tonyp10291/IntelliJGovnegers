@@ -17,7 +17,7 @@ public class UserController {
     private final UserSvc userSvc;
     private final JwtUtil jwtUtil;
 
-    @PostMapping("/login")
+    @PostMapping("/api/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
         try {
             String uid = loginRequest.get("uid");
