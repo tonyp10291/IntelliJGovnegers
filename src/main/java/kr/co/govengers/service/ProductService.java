@@ -1,7 +1,7 @@
 package kr.co.govengers.service;
 
 import kr.co.govengers.dto.ProductRegisterRequest;
-import kr.co.govengers.entity.Product;
+import kr.co.govengers.entity.*;
 import kr.co.govengers.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,15 +46,15 @@ public class ProductService {
 
         Product product = Product.builder()
                 .pnm(req.getPnm())
-                .mainCategory(req.getMainCategory())
-                .subCategory(req.getSubCategory())
+                .mainCategory(MainCategory.valueOf(req.getMainCategory()))
+                .subCategory(SubCategory.valueOf(req.getSubCategory()))
                 .price(req.getPrice())
                 .pdesc(req.getPdesc())
                 .origin(req.getOrigin())
                 .expDate(req.getExpDate())
                 .hit(0) // 신규 등록은 0
-                .userStatus(req.getUserStatus())
-                .adminStatus(req.getAdminStatus())
+                .userStatus(UserStatus.valueOf(req.getUserStatus()))
+                .adminStatus(AdminStatus.valueOf(req.getAdminStatus()))
                 .imageUrl(imageUrl)
                 .build();
         productRepository.save(product);
