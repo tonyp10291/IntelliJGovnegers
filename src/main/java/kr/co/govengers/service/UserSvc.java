@@ -3,6 +3,8 @@
     import kr.co.govengers.entity.User;
     import kr.co.govengers.repository.UserRepo;
     import lombok.RequiredArgsConstructor;
+    import org.springframework.data.domain.Page;
+    import org.springframework.data.domain.Pageable;
     import org.springframework.security.crypto.password.PasswordEncoder;
     import org.springframework.stereotype.Service;
 
@@ -34,5 +36,14 @@
 
             return userRepo.save(user);
         }
+
+        public Page<User> getPagedUsers(Pageable pageable) {
+            return userRepo.findByEnabledTrue(pageable);
+        }
+
+        public Page<User> searchUsersByKeyword(String keyword, Pageable pageable) {
+            return userRepo.findByEnabledTrueAndUidContainingIgnoreCaseOrEnabledTrueAndUnmContainingIgnoreCase(keyword, keyword, pageable);
+        }
+
     }
 

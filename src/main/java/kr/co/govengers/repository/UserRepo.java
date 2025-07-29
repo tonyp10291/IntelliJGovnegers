@@ -1,9 +1,18 @@
 package kr.co.govengers.repository;
 
 import kr.co.govengers.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepo extends JpaRepository<User, String> {
+    Page<User> findByUidContainingIgnoreCaseOrUnmContainingIgnoreCase(String uid, String unm, Pageable pageable);
+
+    Page<User> findByEnabledTrue(Pageable pageable);
+
+    Page<User> findByEnabledTrueAndUidContainingIgnoreCaseOrEnabledTrueAndUnmContainingIgnoreCase(
+            String uid, String unm, Pageable pageable);
+
 }
