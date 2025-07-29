@@ -7,7 +7,11 @@ import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "product")
 public class Product {
@@ -20,6 +24,9 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
+    @Enumerated(EnumType.STRING)
+    private SubCategory subCategory;
+
     private Integer hit = 0;
     private Integer price;
     private String pdesc;
@@ -31,4 +38,7 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     private AdminStatus adminStatus = AdminStatus.주문완료;
+
+    // 이미지 경로 컬럼 필요하다면 아래 추가 (DB에도 컬럼 추가!)
+    private String imageUrl;
 }

@@ -1,7 +1,7 @@
-package kr.com.GoGiProject.config;
+package kr.co.govengers.config;
 
-import kr.com.GoGiProject.entity.User;
-import kr.com.GoGiProject.repository.UserRepo;
+import kr.co.govengers.entity.User;
+import kr.co.govengers.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ public class DataInit {
             if (!userRepo.existsById("admin")) {
                 User admin = new User();
                 admin.setUid("admin");
-                admin.setUpw(passwordEncoder.encode("admin1234")); // 비밀번호 암호화
+                admin.setUpw(passwordEncoder.encode("1111")); // 비밀번호 암호화
                 admin.setUnm("관리자");
                 admin.setUmail("admin@gogi.com");
                 admin.setRole("ROLE_ADMIN");
