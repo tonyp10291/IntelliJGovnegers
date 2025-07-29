@@ -1,9 +1,9 @@
-package kr.com.GoGiProject.util;
+package kr.co.govengers.util;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import kr.com.GoGiProject.entity.User;
+import kr.co.govengers.entity.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
