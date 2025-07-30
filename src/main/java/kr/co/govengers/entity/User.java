@@ -30,8 +30,6 @@ public class User {
     @Column(length = 20)
     private String utel;
 
-    @Column(length = 8)
-    private String ubt;
 
     @Column(length = 20, nullable = false)
     @Builder.Default

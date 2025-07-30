@@ -20,6 +20,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
+    private String subCategory;
+
     @Builder.Default
     private Integer hit = 0;
 
