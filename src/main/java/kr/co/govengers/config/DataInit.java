@@ -1,0 +1,37 @@
+package kr.co.govengers.config;
+
+import kr.co.govengers.entity.Users;
+import kr.co.govengers.repository.UserRepo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@RequiredArgsConstructor
+public class DataInit {
+
+    private final UserRepo userRepo;
+    private final PasswordEncoder passwordEncoder;
+
+    @Bean
+    public CommandLineRunner initAdminData() {
+        return args -> {
+            if (!userRepo.existsById("admin")) {
+                Users admin = new Users();
+                admin.setUid("admin");
+                admin.setUpw(passwordEncoder.encode("1111"));
+                admin.setUnm("관리자");
+                admin.setUmail("admin@gogi.com");
+                admin.setRole("ROLE_ADMIN");
+                admin.setEnabled(true);
+                admin.setEmailVerified(true);
+                admin.setSmsVerified(true);
+
+                userRepo.save(admin);
+                System.out.println("✅ 초기 관리자 계정이 생성되었습니다.");
+            }
+        };
+    }
+}
