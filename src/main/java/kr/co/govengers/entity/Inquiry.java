@@ -17,13 +17,14 @@ public class Inquiry {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     private String title;
     private String content;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
     private String answer;
     private LocalDateTime answerAt;
 

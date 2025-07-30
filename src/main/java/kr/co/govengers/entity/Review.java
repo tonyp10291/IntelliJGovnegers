@@ -15,7 +15,7 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     @ManyToOne
     @JoinColumn(name = "pid")

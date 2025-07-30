@@ -15,10 +15,11 @@ public class Point {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     private Integer changeAmount;
     private String description;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

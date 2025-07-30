@@ -1,16 +1,16 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
-public class User {
+@AllArgsConstructor
+@Builder
+public class Users {
 
     @Id
     @Column(length = 50)
@@ -31,20 +31,25 @@ public class User {
     @Column(length = 8)
     private String ubt;
 
-    @Column(length = 100)
-    private String address;
-
-    private int point = 0;
-
-    @Column(length = 20)
-    private String role;
+    @Column(length = 20, nullable = false)
+    @Builder.Default
+    private String role = "ROLE_USER";
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean emailVerified = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean smsVerified = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private int point = 0;
+
+    private String address;
 }

@@ -1,12 +1,14 @@
 package kr.co.govengers.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor @Builder
 @Entity
 @Table(name = "notice_comment")
 public class NoticeComment {
@@ -20,7 +22,7 @@ public class NoticeComment {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     private String content;
 
