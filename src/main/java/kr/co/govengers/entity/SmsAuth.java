@@ -1,4 +1,3 @@
-//추가
 package kr.co.govengers.entity;
 
 import jakarta.persistence.Column;

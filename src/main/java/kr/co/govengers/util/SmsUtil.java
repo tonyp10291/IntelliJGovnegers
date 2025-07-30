@@ -1,4 +1,3 @@
-//추가
 package kr.co.govengers.util;
 
 import jakarta.annotation.PostConstruct;

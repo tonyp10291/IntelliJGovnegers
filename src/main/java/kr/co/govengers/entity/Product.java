@@ -5,7 +5,6 @@ import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
 import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -20,6 +19,8 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
+
+    private String subCategory;
 
     @Builder.Default
     private Integer hit = 0;
