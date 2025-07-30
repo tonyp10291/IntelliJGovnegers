@@ -1,9 +1,14 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
+import kr.co.govengers.entity.enums.ImageType;
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "image")
 public class Image {
@@ -19,5 +24,6 @@ public class Image {
     private String url;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private ImageType type = ImageType.대표;
 }

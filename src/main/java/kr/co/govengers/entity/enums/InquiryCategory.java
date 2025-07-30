@@ -1,4 +1,4 @@
-package kr.co.govengers.entity;
+package kr.co.govengers.entity.enums;
 
 public enum InquiryCategory {
     상품문의,   // 상품 관련 문의

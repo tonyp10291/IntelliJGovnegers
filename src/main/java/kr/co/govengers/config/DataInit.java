@@ -1,6 +1,6 @@
 package kr.co.govengers.config;
 
-import kr.co.govengers.entity.User;
+import kr.co.govengers.entity.Users;
 import kr.co.govengers.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -18,11 +18,10 @@ public class DataInit {
     @Bean
     public CommandLineRunner initAdminData() {
         return args -> {
-            // "admin" 아이디를 가진 사용자가 없을 때만 아래 로직을 실행
             if (!userRepo.existsById("admin")) {
-                User admin = new User();
+                Users admin = new Users();
                 admin.setUid("admin");
-                admin.setUpw(passwordEncoder.encode("1111")); // 비밀번호 암호화
+                admin.setUpw(passwordEncoder.encode("1111"));
                 admin.setUnm("관리자");
                 admin.setUmail("admin@gogi.com");
                 admin.setRole("ROLE_ADMIN");

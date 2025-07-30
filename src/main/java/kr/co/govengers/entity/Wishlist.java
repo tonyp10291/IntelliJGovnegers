@@ -5,7 +5,11 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "wishlist")
 public class Wishlist {
@@ -15,11 +19,12 @@ public class Wishlist {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     @ManyToOne
     @JoinColumn(name = "pid")
     private Product product;
 
+    @Builder.Default
     private LocalDateTime addedAt = LocalDateTime.now();
 }

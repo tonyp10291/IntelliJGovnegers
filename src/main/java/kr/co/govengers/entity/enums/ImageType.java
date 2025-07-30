@@ -1,4 +1,4 @@
-package kr.co.govengers.entity;
+package kr.co.govengers.entity.enums;
 
 public enum ImageType {
     대표,   // 메인 대표 이미지

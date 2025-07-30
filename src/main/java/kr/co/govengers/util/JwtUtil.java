@@ -3,7 +3,7 @@ package kr.co.govengers.util;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import kr.co.govengers.entity.User;
+import kr.co.govengers.entity.Users;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +25,13 @@ public class JwtUtil {
         this.accessTokenExpirationTime = accessTokenExpirationTime;
     }
 
-    public String generateToken(User user) {
+    public String generateToken(Users user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationTime);
 
         return Jwts.builder()
-                .setSubject(user.getUid()) // 토큰의 주체로 사용자 ID 설정
-                .claim("role", user.getRole()) // 사용자 역할을 claim에 추가
+                .setSubject(user.getUid())
+                .claim("role", user.getRole())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256)

@@ -15,7 +15,7 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     @ManyToOne
     @JoinColumn(name = "pid")
@@ -24,5 +24,7 @@ public class Review {
     private String content;
     private int rating;
     private String imgFilename;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

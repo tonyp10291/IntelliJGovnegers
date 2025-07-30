@@ -1,30 +1,28 @@
 package kr.co.govengers.controller;
 
-import kr.co.govengers.entity.User;
+import kr.co.govengers.entity.Users;
 import kr.co.govengers.service.UserSvc;
 import kr.co.govengers.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserSvc userSvc;
     private final JwtUtil jwtUtil;
 
-    @PostMapping("/api/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
         try {
             String uid = loginRequest.get("uid");
             String upw = loginRequest.get("upw");
-
-            User authenticatedUser = userSvc.login(uid, upw);
-
+            Users authenticatedUser = userSvc.login(uid, upw);
             String token = jwtUtil.generateToken(authenticatedUser);
 
             Map<String, String> response = Map.of("message", "로그인 성공", "token", token);
@@ -36,7 +34,7 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(@RequestBody User user) {
+    public ResponseEntity<String> join(@RequestBody Users user) {
         try {
             userSvc.join(user);
             return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");
@@ -45,4 +43,8 @@ public class UserController {
         }
     }
 
+    @GetMapping("/test")
+    public String testEndpoint() {
+        return "UserController 테스트 성공!";
+    }
 }

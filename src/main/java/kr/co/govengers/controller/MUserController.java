@@ -1,6 +1,5 @@
 package kr.co.govengers.controller;
 
-import kr.co.govengers.entity.User;
 import kr.co.govengers.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,16 +17,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MUserController {
 
-    private final UserRepo UserRepo;
+    private final UserRepo userRepo;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.ok(UserRepo.findAll());
+        return ResponseEntity.ok(userRepo.findAll());
     }
 
     @GetMapping("/{uid}")
     public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable String uid) {
-        return UserRepo.findById(uid)
+        return userRepo.findById(uid)
                 .map(user -> {
                     Map<String, Object> userInfo = new HashMap<>();
                     userInfo.put("uid", user.getUid());

@@ -13,11 +13,13 @@ public class UserAddress {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private User user;
+    private Users user;
 
     private String receiverName;
     private String phone;
     private String postcode;
     private String address;
+
+    @Builder.Default
     private boolean isDefault = false;
 }

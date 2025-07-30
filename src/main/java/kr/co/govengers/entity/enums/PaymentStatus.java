@@ -1,4 +1,4 @@
-package kr.co.govengers.entity;
+package kr.co.govengers.entity.enums;
 
 public enum PaymentStatus {
     결제완료,

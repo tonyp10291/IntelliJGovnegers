@@ -1,6 +1,7 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
+import kr.co.govengers.entity.enums.PaymentStatus;
 import lombok.*;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -25,6 +26,7 @@ public class OrderItem {
     private String imgFilename;
     private String paymentMethod;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private PaymentStatus status = PaymentStatus.결제완료;
 }

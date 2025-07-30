@@ -1,4 +1,4 @@
 package kr.co.govengers.repository;
 
-public class ProductRepository {
+public class OrderRepository {
 }
