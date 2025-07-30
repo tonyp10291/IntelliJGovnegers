@@ -1,15 +1,15 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -31,20 +31,25 @@ public class User {
     @Column(length = 8)
     private String ubt;
 
-    @Column(length = 100)
-    private String address;
-
-    private int point = 0;
-
-    @Column(length = 20)
-    private String role;
+    @Column(length = 20, nullable = false)
+    @Builder.Default
+    private String role = "ROLE_USER";
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean emailVerified = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean smsVerified = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private int point = 0;
+
+    private String address;
 }

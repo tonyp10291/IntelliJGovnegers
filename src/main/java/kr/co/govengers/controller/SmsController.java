@@ -1,4 +1,3 @@
-//추가
 package kr.co.govengers.controller;
 
 import kr.co.govengers.service.SmsSvc;
@@ -18,7 +17,6 @@ public class SmsController {
 
     private final SmsSvc smsSvc;
 
-    // 인증번호 발송 API
     @PostMapping("/sms/send-code")
     public ResponseEntity<String> sendVerificationCode(@RequestBody Map<String, String> request) {
         try {
@@ -30,7 +28,6 @@ public class SmsController {
         }
     }
 
-    // 인증번호 확인 API
     @PostMapping("/sms/verify-code")
     public ResponseEntity<String> verifyCode(@RequestBody Map<String, String> request) {
         String phone = request.get("phone");

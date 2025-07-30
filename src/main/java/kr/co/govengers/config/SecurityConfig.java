@@ -1,6 +1,6 @@
 package kr.co.govengers.config;
 
-import kr.co.govengers.filter.JwtAuthenticationFilter;
+import kr.co.govengers.filter.JwtAuthenticationFilter; // 수정
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter; // 수정
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,23 +37,15 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/login",
-                                "/api/join",
-                                "/api/email/send-code",
-                                "/api/email/verify-code",
-                                "/api/products",
-                                "/api/main"
-                        ).permitAll()
-
+                        .requestMatchers("/api/login", "/api/join", "/api/email/**", "/api/sms/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 수정
 
         return http.build();
     }
 
-    // 추가추가추가추가추가
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -63,7 +55,7 @@ public class SecurityConfig {
         configuration.addAllowedHeader("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 }

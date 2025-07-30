@@ -7,17 +7,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserSvc userSvc;
     private final JwtUtil jwtUtil;
 
-    @PostMapping("/api/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
         try {
             String uid = loginRequest.get("uid");
@@ -35,7 +37,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/api/join")
+    @PostMapping("/join")
     public ResponseEntity<String> join(@RequestBody User user) {
         try {
             userSvc.join(user);

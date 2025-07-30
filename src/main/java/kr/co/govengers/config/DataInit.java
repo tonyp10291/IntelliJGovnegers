@@ -18,7 +18,6 @@ public class DataInit {
     @Bean
     public CommandLineRunner initAdminData() {
         return args -> {
-            // "admin" 아이디를 가진 사용자가 없을 때만 아래 로직을 실행
             if (!userRepo.existsById("admin")) {
                 User admin = new User();
                 admin.setUid("admin");
