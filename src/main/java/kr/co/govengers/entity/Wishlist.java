@@ -21,5 +21,6 @@ public class Wishlist {
     @JoinColumn(name = "pid")
     private Product product;
 
+    @Builder.Default
     private LocalDateTime addedAt = LocalDateTime.now();
 }

@@ -24,5 +24,7 @@ public class Review {
     private String content;
     private int rating;
     private String imgFilename;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -2,6 +2,9 @@ package kr.co.govengers.service;
 
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.*;
+import kr.co.govengers.entity.enums.AdminStatus;
+import kr.co.govengers.entity.enums.MainCategory;
+import kr.co.govengers.entity.enums.UserStatus;
 import kr.co.govengers.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +28,6 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("상품 없음: " + pid));
         product.setPnm(updatedProduct.getPnm());
         product.setMainCategory(updatedProduct.getMainCategory());
-        product.setSubCategory(updatedProduct.getSubCategory());
         product.setPrice(updatedProduct.getPrice());
         product.setPdesc(updatedProduct.getPdesc());
         product.setOrigin(updatedProduct.getOrigin());
@@ -47,7 +49,6 @@ public class ProductService {
         Product product = Product.builder()
                 .pnm(req.getPnm())
                 .mainCategory(MainCategory.valueOf(req.getMainCategory()))
-                .subCategory(SubCategory.valueOf(req.getSubCategory()))
                 .price(req.getPrice())
                 .pdesc(req.getPdesc())
                 .origin(req.getOrigin())

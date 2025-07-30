@@ -35,7 +35,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/join")
+    @PostMapping("api/join")
     public ResponseEntity<String> join(@RequestBody User user) {
         try {
             userSvc.join(user);

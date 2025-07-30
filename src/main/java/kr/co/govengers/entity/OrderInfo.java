@@ -32,8 +32,10 @@ public class OrderInfo {
     private Integer finalPayment;
     private String paymentMethod;
 
+    @Builder.Default
     private LocalDateTime orderDate = LocalDateTime.now();
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private AdminStatus adminStatus = AdminStatus.주문완료;
 }

@@ -19,6 +19,7 @@ public class Image {
     private String filename;
     private String url;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private ImageType type = ImageType.대표;
 }

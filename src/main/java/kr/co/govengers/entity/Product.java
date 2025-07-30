@@ -24,18 +24,18 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
-    @Enumerated(EnumType.STRING)
-    private SubCategory subCategory;
-
+    @Builder.Default
     private Integer hit = 0;
     private Integer price;
     private String pdesc;
     private String origin;
     private LocalDate expDate;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus = UserStatus.주문완료;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private AdminStatus adminStatus = AdminStatus.주문완료;
 

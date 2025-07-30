@@ -21,12 +21,16 @@ public class Inquiry {
 
     private String title;
     private String content;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     private String answer;
     private LocalDateTime answerAt;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private InquiryCategory category;
+    private InquiryCategory category = InquiryCategory.상품문의;
 
+    @Builder.Default
     private boolean isPrivate = false;
 }

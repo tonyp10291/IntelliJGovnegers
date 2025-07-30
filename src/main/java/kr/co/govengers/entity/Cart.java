@@ -27,6 +27,7 @@ public class Cart {
     @JoinColumn(name = "order_id")
     private OrderInfo orderInfo;
 
+    @Builder.Default
     private Integer quantity = 1;
     private Integer price;
     private String memo;
@@ -37,8 +38,10 @@ public class Cart {
     private String pnm;
     private String imgFilename;
 
+    @Builder.Default
     private LocalDateTime addedAt = LocalDateTime.now();
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private AdminStatus adminStatus = AdminStatus.주문완료;
 }
