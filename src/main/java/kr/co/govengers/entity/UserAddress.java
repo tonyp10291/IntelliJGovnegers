@@ -19,5 +19,7 @@ public class UserAddress {
     private String phone;
     private String postcode;
     private String address;
+
+    @Builder.Default
     private boolean isDefault = false;
 }

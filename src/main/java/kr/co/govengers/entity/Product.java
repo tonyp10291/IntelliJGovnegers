@@ -1,6 +1,5 @@
 package kr.co.govengers.entity;
 
-import kr.co.govengers.entity.enums.SubCategory;
 import jakarta.persistence.*;
 import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
@@ -21,18 +20,19 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
+    @Builder.Default
     private Integer hit = 0;
+
     private Integer price;
     private String pdesc;
     private String origin;
     private LocalDate expDate;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus = UserStatus.주문완료;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private AdminStatus adminStatus = AdminStatus.주문완료;
-
-    @Enumerated(EnumType.STRING)
-    private SubCategory subCategory;
 }

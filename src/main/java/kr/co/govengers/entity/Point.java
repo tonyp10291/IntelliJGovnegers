@@ -19,5 +19,7 @@ public class Point {
 
     private Integer changeAmount;
     private String description;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

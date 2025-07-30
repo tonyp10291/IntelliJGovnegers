@@ -5,7 +5,11 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "wishlist")
 public class Wishlist {
@@ -21,5 +25,6 @@ public class Wishlist {
     @JoinColumn(name = "pid")
     private Product product;
 
+    @Builder.Default
     private LocalDateTime addedAt = LocalDateTime.now();
 }

@@ -26,6 +26,7 @@ public class OrderItem {
     private String imgFilename;
     private String paymentMethod;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private PaymentStatus status = PaymentStatus.결제완료;
 }
