@@ -3,7 +3,7 @@ package kr.co.govengers.util;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import kr.co.govengers.entity.Users;
+import kr.co.govengers.entity.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class JwtUtil {
         this.accessTokenExpirationTime = accessTokenExpirationTime;
     }
 
-    public String generateToken(Users user) {
+    public String generateToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationTime);
 

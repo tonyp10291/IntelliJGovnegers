@@ -13,14 +13,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping("/api/admin/user")
 @RequiredArgsConstructor
 public class MUserController {
 
     private final UserRepo userRepo;
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<?> getAllUser() {
         return ResponseEntity.ok(userRepo.findAll());
     }
 

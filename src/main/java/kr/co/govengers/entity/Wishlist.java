@@ -19,7 +19,7 @@ public class Wishlist {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "pid")

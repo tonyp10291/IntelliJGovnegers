@@ -1,6 +1,6 @@
 package kr.co.govengers.controller;
 
-import kr.co.govengers.entity.Users;
+import kr.co.govengers.entity.User;
 import kr.co.govengers.service.UserSvc;
 import kr.co.govengers.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class UserController {
         try {
             String uid = loginRequest.get("uid");
             String upw = loginRequest.get("upw");
-            Users authenticatedUser = userSvc.login(uid, upw);
+            User authenticatedUser = userSvc.login(uid, upw);
             String token = jwtUtil.generateToken(authenticatedUser);
 
             Map<String, String> response = Map.of("message", "로그인 성공", "token", token);
@@ -34,7 +34,7 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(@RequestBody Users user) {
+    public ResponseEntity<String> join(@RequestBody User user) {
         try {
             userSvc.join(user);
             return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");

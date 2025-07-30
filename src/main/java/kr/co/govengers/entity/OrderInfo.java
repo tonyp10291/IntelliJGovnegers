@@ -16,7 +16,7 @@ public class OrderInfo {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private String utel;
     private String umail;

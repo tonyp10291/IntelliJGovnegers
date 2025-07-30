@@ -17,7 +17,7 @@ public class Inquiry {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private String title;
     private String content;

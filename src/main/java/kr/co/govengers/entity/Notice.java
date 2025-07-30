@@ -35,5 +35,4 @@ public class Notice {
     @Builder.Default
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-    private boolean isEvent = false;
 }

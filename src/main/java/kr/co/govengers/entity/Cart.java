@@ -20,7 +20,7 @@ public class Cart {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "pid")
@@ -45,7 +45,6 @@ public class Cart {
     @Builder.Default
     private LocalDateTime addedAt = LocalDateTime.now();
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private AdminStatus adminStatus = AdminStatus.주문완료;
