@@ -3,40 +3,63 @@ package kr.co.govengers.service;
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
 import kr.co.govengers.entity.enums.MainCategory;
-import kr.co.govengers.repository.ProductRepository;
+import kr.co.govengers.entity.enums.SubCategory;
+import kr.co.govengers.repository.PdRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+public class PdSvc {
 
-    private final ProductRepository productRepository;
+    private final PdRepo productRepo;
 
+    @Value("${custom.upload-path}")
+    private String uploadPath;
+
+    @Transactional(readOnly = true)
     public List<Product> getProducts() {
-        return productRepository.findAll();
+        return productRepo.findAll();
     }
 
     @Transactional
-    public void registerProduct(ProductRegisterRequest req, MultipartFile imageFile) {
+    public void registerProduct(ProductRegisterRequest req, MultipartFile imageFile) throws IOException {
+        String savedFilename = null;
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String originalFilename = imageFile.getOriginalFilename();
+            savedFilename = UUID.randomUUID().toString() + "_" + originalFilename;
+            File dest = new File(uploadPath, savedFilename);
+            imageFile.transferTo(dest);
+        }
+
         Product product = Product.builder()
                 .pnm(req.getName())
                 .mainCategory(MainCategory.valueOf(req.getMainCategory()))
+                .subCategory(SubCategory.valueOf(req.getSubCategory()))
                 .price(req.getPrice())
                 .pdesc(req.getDescription())
+                .stock(req.getStock())
                 .hit(req.getHit())
+                .imgFilename(savedFilename)
                 .build();
-        productRepository.save(product);
+
+        productRepo.save(product);
     }
 
     @Transactional
     public Product updateProduct(Integer pid, Product updatedProduct) {
-        Product product = productRepository.findById(pid)
+        Product product = productRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품 없음: " + pid));
+
         product.setPnm(updatedProduct.getPnm());
         product.setMainCategory(updatedProduct.getMainCategory());
         product.setSubCategory(updatedProduct.getSubCategory());
@@ -47,6 +70,7 @@ public class ProductService {
         product.setHit(updatedProduct.getHit());
         product.setUserStatus(updatedProduct.getUserStatus());
         product.setAdminStatus(updatedProduct.getAdminStatus());
-        return product;
+
+        return productRepo.save(product);
     }
 }

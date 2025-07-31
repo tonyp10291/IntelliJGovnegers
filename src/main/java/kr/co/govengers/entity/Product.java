@@ -3,6 +3,7 @@ package kr.co.govengers.entity;
 import jakarta.persistence.*;
 import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
+import kr.co.govengers.entity.enums.SubCategory;
 import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
@@ -15,26 +16,36 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer pid;
 
+    @Column(nullable = false)
     private String pnm;
 
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
-    private String subCategory;
+    @Enumerated(EnumType.STRING)
+    private SubCategory subCategory;
+
+    @Column(nullable = false)
+    private int price;
+
+    @Column(nullable = false)
+    private int stock;
+
+    private String pdesc;
+    private String origin;
+
+    private LocalDate expDate;
 
     @Builder.Default
     private Integer hit = 0;
 
-    private Integer price;
-    private String pdesc;
-    private String origin;
-    private LocalDate expDate;
-
-    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private UserStatus userStatus = UserStatus.주문완료;
-
     @Builder.Default
+    private UserStatus userStatus = UserStatus.판매중;
+
     @Enumerated(EnumType.STRING)
-    private AdminStatus adminStatus = AdminStatus.주문완료;
+    @Builder.Default
+    private AdminStatus adminStatus = AdminStatus.판매중;
+
+    private String imgFilename;
 }

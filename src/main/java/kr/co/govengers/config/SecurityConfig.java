@@ -1,9 +1,10 @@
 package kr.co.govengers.config;
 
-import kr.co.govengers.filter.JwtAuthenticationFilter; // 수정
+import kr.co.govengers.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,7 +38,23 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/api/join", "/api/products", "/api/email/**", "/api/sms/**").permitAll()
+                        .requestMatchers(
+                                "/api/login",
+                                "/api/join",
+                                "/api/email/**",
+                                "/api/sms/**",
+                                "/api/products/**",
+                                "/api/search/**",
+                                "/api/notice/**",
+                                "/api/review/**",
+                                "/api/inquiry/**",
+                                "/api/find-id",
+                                "/api/find-id-by-email",
+                                "/api/request-password-reset",
+                                "/api/reset-password"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

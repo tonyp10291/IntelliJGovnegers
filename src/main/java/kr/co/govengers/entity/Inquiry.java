@@ -33,5 +33,6 @@ public class Inquiry {
     private InquiryCategory category = InquiryCategory.상품문의;
 
     @Builder.Default
+    @Column(name = "is_private", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean isPrivate = false;
 }
