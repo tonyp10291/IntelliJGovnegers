@@ -2,7 +2,7 @@ package kr.co.govengers.controller;
 
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
-import kr.co.govengers.service.ProductService;
+import kr.co.govengers.service.PdSvs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    private final ProductService productService;
+    private final PdSvs productService;
 
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {

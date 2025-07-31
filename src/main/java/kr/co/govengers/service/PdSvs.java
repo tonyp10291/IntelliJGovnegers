@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+public class PdSvs {
 
     private final ProductRepository productRepository;
 
