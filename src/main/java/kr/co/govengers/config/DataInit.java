@@ -1,6 +1,6 @@
 package kr.co.govengers.config;
 
-import kr.co.govengers.entity.Users;
+import kr.co.govengers.entity.User;
 import kr.co.govengers.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -19,7 +19,7 @@ public class DataInit {
     public CommandLineRunner initAdminData() {
         return args -> {
             if (!userRepo.existsById("admin")) {
-                Users admin = new Users();
+                User admin = new User();
                 admin.setUid("admin");
                 admin.setUpw(passwordEncoder.encode("1111"));
                 admin.setUnm("관리자");

@@ -17,7 +17,7 @@ public class Inquiry {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private String title;
     private String content;
@@ -32,5 +32,6 @@ public class Inquiry {
     private InquiryCategory category;
 
     @Builder.Default
+    @Column(name = "is_private", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean isPrivate = false;
 }

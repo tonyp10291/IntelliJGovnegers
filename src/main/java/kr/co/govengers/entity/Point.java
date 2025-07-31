@@ -15,7 +15,7 @@ public class Point {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private Integer changeAmount;
     private String description;

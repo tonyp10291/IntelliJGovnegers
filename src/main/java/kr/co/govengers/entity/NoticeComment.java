@@ -22,7 +22,7 @@ public class NoticeComment {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private String content;
 

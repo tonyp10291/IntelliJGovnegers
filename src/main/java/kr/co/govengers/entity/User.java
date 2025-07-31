@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Users {
+public class User {
 
     @Id
     @Column(length = 50)
