@@ -1,4 +1,3 @@
-//추가
 package kr.co.govengers.repository;
 
 import kr.co.govengers.entity.SmsAuth;

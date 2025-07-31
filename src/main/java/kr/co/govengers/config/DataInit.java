@@ -22,7 +22,7 @@ public class DataInit {
             if (!userRepo.existsById("admin")) {
                 User admin = new User();
                 admin.setUid("admin");
-                admin.setUpw(passwordEncoder.encode("1111")); // 비밀번호 암호화
+                admin.setUpw(passwordEncoder.encode("1111"));
                 admin.setUnm("관리자");
                 admin.setUmail("admin@gogi.com");
                 admin.setRole("ROLE_ADMIN");

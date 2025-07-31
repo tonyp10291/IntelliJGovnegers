@@ -9,6 +9,5 @@ public class ProductRegisterRequest {
     private int price;
     private String description;
     private int stock;
-    private int hit; // hit(0/1)
-    // 이미지 등 추가필요시 필드 확장
+    private int hit;
 }
