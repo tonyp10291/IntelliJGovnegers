@@ -1,5 +1,6 @@
 package kr.co.govengers.util;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -36,5 +37,26 @@ public class JwtUtil {
                 .setExpiration(expiryDate)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    //20250731_영미 (추가)
+    public Claims parseToken(String token) {
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+    }
+
+    //20250731_영미 (추가)
+    public boolean validateToken(String token) {
+        try {
+            Claims claims = parseToken(token);
+            return !claims.getExpiration().before(new Date()); // 만료 여부 확인
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    //20250731_영미 (추가)
+    public String getUserIdFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.getSubject();
     }
 }
