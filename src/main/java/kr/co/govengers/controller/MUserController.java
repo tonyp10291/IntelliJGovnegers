@@ -1,16 +1,14 @@
 package kr.co.govengers.controller;
 
 import kr.co.govengers.repository.UserRepo;
+import kr.co.govengers.service.UserSvc;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,20 +18,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MUserController {
 
+    private final UserSvc userSvc;
     private final UserRepo userRepo;
 
     @GetMapping
-    public ResponseEntity<?> getAllUser() {
-        return ResponseEntity.ok(userRepo.findAll());
+    public Page<User> getUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String keyword
+    ) {
+        Pageable pageable = PageRequest.of(page, 10);
+
+        if (keyword != null && !keyword.isBlank()) {
+            return userSvc.searchUsersByKeyword(keyword, pageable);
+        }
+
+        return userSvc.getPagedUsers(pageable);
     }
 
     @GetMapping("/{uid}")
     public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable String uid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        for(GrantedAuthority au : authentication.getAuthorities()){
-            System.out.println("auth_role555: " + au.getAuthority());
-        }
-
         return userRepo.findById(uid)
                 .map(user -> {
                     Map<String, Object> userInfo = new HashMap<>();

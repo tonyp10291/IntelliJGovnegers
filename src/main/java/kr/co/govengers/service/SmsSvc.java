@@ -19,7 +19,9 @@ public class SmsSvc {
     public void sendVerificationCode(String phone) {
         String code = String.format("%06d", new Random().nextInt(999999));
         String message = "[고벤저스] 인증번호: " + code;
+
         smsUtil.sendOne(phone, message);
+
         SmsAuth auth = new SmsAuth();
         auth.setPhone(phone);
         auth.setCode(code);

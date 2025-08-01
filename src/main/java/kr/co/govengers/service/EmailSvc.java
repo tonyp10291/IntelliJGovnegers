@@ -39,6 +39,23 @@ public class EmailSvc {
         javaMailSender.send(message);
     }
 
+
+    public void sendPasswordResetLink(String email, String link) throws MessagingException {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        message.setFrom("your-gmail@gmail.com");
+        message.setRecipients(MimeMessage.RecipientType.TO, email);
+        message.setSubject("[고벤저스] 비밀번호 재설정 링크");
+
+        String body = "<h1>[고벤저스] 비밀번호 재설정</h1>";
+        body += "<div>비밀번호를 재설정하려면 아래 링크를 클릭하세요. (링크는 30분간 유효합니다)</div>";
+        body += "<a href=\"" + link + "\">비밀번호 재설정하기</a>";
+        message.setText(body, "UTF-8", "html");
+
+        javaMailSender.send(message);
+    }
+
+
+
     @Transactional
     public boolean verifyCode(String email, String code) {
         Optional<EmailToken> optionalToken = emailTokenRepo.findByEmailAndToken(email, code);

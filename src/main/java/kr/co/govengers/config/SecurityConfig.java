@@ -1,10 +1,10 @@
 package kr.co.govengers.config;
 
+import kr.co.govengers.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,8 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 @Configuration
-@RequiredArgsConstructor
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomAuthenticationFilter custFilter;
@@ -43,8 +43,18 @@ public class SecurityConfig {
                                 "/api/join",
                                 "/api/email/**",
                                 "/api/sms/**",
-                                "/api/wishlist"
+                                "/api/products/**",
+                                "/api/search/**",
+                                "/api/notice/**",
+                                "/api/review/**",
+                                "/api/inquiry/**",
+                                "/api/find-id",
+                                "/api/find-id-by-email",
+                                "/api/request-password-reset",
+                                "/api/reset-password"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/wishlist/user").hasRole("USER")
                         .anyRequest().authenticated()
