@@ -1,5 +1,6 @@
 package kr.co.govengers.controller;
 
+import kr.co.govengers.entity.User;
 import kr.co.govengers.repository.UserRepo;
 import kr.co.govengers.service.UserSvc;
 import lombok.RequiredArgsConstructor;
