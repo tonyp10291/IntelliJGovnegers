@@ -35,4 +35,8 @@ public class Inquiry {
     @Builder.Default
     @Column(name = "is_private", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean isPrivate = false;
+
+    public boolean getIsPrivate() {
+        return isPrivate;
+    }
 }

@@ -20,7 +20,6 @@ public class MQnAController {
 
     private final MQnASvc mqnaSvc;
 
-    // 전체 문의 목록 조회 (관리자용)
     @GetMapping
     public Page<Inquiry> getInquiries(
             @RequestParam(defaultValue = "0") int page,
@@ -31,31 +30,25 @@ public class MQnAController {
     ) {
         Pageable pageable = PageRequest.of(page, 10);
 
-        // 검색어가 있으면 검색
         if (keyword != null && !keyword.isBlank()) {
             return mqnaSvc.searchInquiriesByKeyword(keyword, pageable);
         }
 
-        // 카테고리 필터가 있으면 카테고리별 조회
         if (category != null && !category.isBlank()) {
             return mqnaSvc.getInquiriesByCategory(category, pageable);
         }
 
-        // 답변 상태 필터가 있으면 상태별 조회
         if (answerStatus != null && !answerStatus.isBlank()) {
             return mqnaSvc.getInquiriesByAnswerStatus(answerStatus, pageable);
         }
 
-        // 공개/비공개 필터가 있으면
         if (isPrivate != null) {
             return mqnaSvc.getInquiriesByPrivacy(isPrivate, pageable);
         }
 
-        // 기본: 전체 조회 (최신순)
         return mqnaSvc.getPagedInquiries(pageable);
     }
 
-    // 개별 문의 상세 조회
     @GetMapping("/{inquiryId}")
     public ResponseEntity<Inquiry> getInquiryDetail(@PathVariable Long inquiryId) {
         try {

@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/uqna")
@@ -18,14 +20,47 @@ public class UQnAController {
     private final UQnASvc uqnASvc;
 
     @GetMapping
-    public ResponseEntity<List<Inquiry>> getAllInquiries() {
-        List<Inquiry> inquiries = uqnASvc.findAllInquiries();
-        return ResponseEntity.ok(inquiries);
+    public ResponseEntity<List<Inquiry>> getInquiries(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword,
+            @AuthenticationPrincipal User user
+    ) {
+        try {
+            String userId = user != null ? user.getUid() : null;
+            List<Inquiry> inquiries = uqnASvc.findInquiriesForUser(category, keyword, userId);
+            return ResponseEntity.ok(inquiries);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(List.of()); // 오류 시 빈 리스트 반환
+        }
     }
 
     @PostMapping
-    public ResponseEntity<Inquiry> createInquiry(@RequestBody Inquiry inquiry, @AuthenticationPrincipal User user) {
-        Inquiry createdInquiry = uqnASvc.createInquiry(inquiry, user.getUid());
-        return ResponseEntity.ok(createdInquiry);
+    public ResponseEntity<Map<String, Object>> createInquiry(
+            @RequestBody Inquiry inquiry,
+            @AuthenticationPrincipal User user
+    ) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            Inquiry createdInquiry = uqnASvc.createInquiry(inquiry, user.getUid());
+
+            response.put("success", true);
+            response.put("message", "등록되었습니다.");
+            response.put("data", createdInquiry);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "등록 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        }
     }
 }
