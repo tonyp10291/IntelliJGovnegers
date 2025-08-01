@@ -1,6 +1,7 @@
 package kr.co.govengers.config;
 
-import kr.co.govengers.filter.JwtAuthenticationFilter;
+//import kr.co.govengers.filter.JwtFilter; // ← jwt 필터 사용 시
+import kr.co.govengers.config.CustomAuthenticationFilter; // ← custom 필터 사용 시
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +23,8 @@ import java.util.Arrays;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    // private final JwtFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationFilter custFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -38,30 +39,30 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // --- 비로그인 사용자도 접근 가능한 API 목록 ---
                         .requestMatchers(
                                 "/api/login",
                                 "/api/join",
                                 "/api/email/**",
                                 "/api/sms/**",
-                                "/api/products/**",     // 상품 조회
-                                "/api/search/**",       // 검색
-                                "/api/notice/**",       // 공지사항 조회
-                                "/api/review/**",       // 리뷰 조회
-                                "/api/inquiry/**",       // 문의 조회 (목록)
+                                "/api/products/**",
+                                "/api/search/**",
+                                "/api/notice/**",
+                                "/api/review/**",
+                                "/api/inquiry/**",
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
                                 "/api/reset-password"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/email/send-code").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
-                        // --- 관리자만 접근 가능한 API ---
-                        .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
-                        // --- 위 경로들을 제외한 모든 요청은 인증 필요 ---
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/wishlist/user").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+              //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(custFilter, UsernamePasswordAuthenticationFilter.class);// 여기 세미콜론은 ok!
 
         return http.build();
     }

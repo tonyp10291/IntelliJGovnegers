@@ -17,19 +17,46 @@ public class UQnASvc {
     private final UQnARepo uqnARepo;
     private final UserRepo userRepo;
 
-    // 모든 문의 목록 조회
     @Transactional(readOnly = true)
-    public List<Inquiry> findAllInquiries() {
-        return uqnARepo.findAll();
+    public List<Inquiry> findInquiriesForUser(String category, String keyword, String userId) {
+        if (category != null && !category.equals("전체") && keyword != null && !keyword.isBlank()) {
+            return uqnARepo.findByCategoryAndTitleContainingAndVisibilityForUser(category, keyword, userId);
+        }
+        else if (category != null && !category.equals("전체")) {
+            return uqnARepo.findByCategoryAndVisibilityForUser(category, userId);
+        }
+        else if (keyword != null && !keyword.isBlank()) {
+            return uqnARepo.findByTitleContainingAndVisibilityForUser(keyword, userId);
+        }
+        else {
+            return uqnARepo.findAllWithVisibilityForUser(userId);
+        }
     }
 
-    // 새로운 문의 등록
+    @Transactional(readOnly = true)
+    public List<Inquiry> findAllInquiries() {
+        return uqnARepo.findAllByOrderByCreatedAtDesc();
+    }
+
     @Transactional
     public Inquiry createInquiry(Inquiry inquiry, String userId) {
-        // userId로 User 객체를 찾아서 문의(Inquiry)에 연결
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         inquiry.setUser(user);
         return uqnARepo.save(inquiry);
+    }
+
+    @Transactional(readOnly = true)
+    public Inquiry getInquiryForUser(Long inquiryId, String userId) {
+        Inquiry inquiry = uqnARepo.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+
+        if (inquiry.getIsPrivate() &&
+                (userId == null || inquiry.getUser() == null ||
+                        !inquiry.getUser().getUid().equals(userId))) {
+            throw new SecurityException("이 문의를 볼 권한이 없습니다.");
+        }
+
+        return inquiry;
     }
 }

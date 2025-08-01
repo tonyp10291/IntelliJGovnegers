@@ -26,7 +26,7 @@ public class JwtUtil {
         this.accessTokenExpirationTime = accessTokenExpirationTime;
     }
 
-    // --- 기존 generateToken 메소드 ---
+    // ✅ JWT 생성
     public String generateToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationTime);
@@ -40,10 +40,8 @@ public class JwtUtil {
                 .compact();
     }
 
-    // --- 아래 메소드들 추가 ---
-
-    // 토큰에서 모든 정보(Claims) 추출
-    private Claims extractAllClaims(String token) {
+    // ✅ 토큰 파싱
+    public Claims parseToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -51,24 +49,18 @@ public class JwtUtil {
                 .getBody();
     }
 
-    // 토큰에서 사용자 아이디(uid) 추출
-    public String getUidFromToken(String token) {
-        return extractAllClaims(token).getSubject();
-    }
-
-    // 토큰 만료 여부 확인
-    private boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
-    }
-
-    // 토큰 유효성 검증
-    public boolean isTokenValid(String token) {
+    // ✅ 토큰 유효성 검사
+    public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-            return !isTokenExpired(token);
+            Claims claims = parseToken(token);
+            return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
-            // 토큰 파싱 실패 시 (서명 오류, 만료 등) 유효하지 않음
             return false;
         }
+    }
+
+    // ✅ UID 추출
+    public String getUserIdFromToken(String token) {
+        return parseToken(token).getSubject();
     }
 }

@@ -1,5 +1,6 @@
 package kr.co.govengers.service;
 
+import kr.co.govengers.config.CustomUserDetails;
 import kr.co.govengers.entity.PswRsToken;
 import kr.co.govengers.entity.User;
 import kr.co.govengers.repository.PswRsTokenRepo;
@@ -7,6 +8,7 @@ import kr.co.govengers.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class UserSvc {
     private final PswRsTokenRepo pswRsTokenRepo;
     private final EmailSvc emailSvc;
 
+    // ✅ 로그인
     @Transactional(readOnly = true)
     public User login(String uid, String upw) {
         User user = userRepo.findById(uid)
@@ -32,6 +35,7 @@ public class UserSvc {
         return user;
     }
 
+    // ✅ 회원가입
     @Transactional
     public User join(User user) {
         if (userRepo.existsById(user.getUid())) {
@@ -40,10 +44,16 @@ public class UserSvc {
         if (userRepo.existsByUmail(user.getUmail())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
+
+        user.setRole("ROLE_USER");
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        user.setSmsVerified(true);
         user.setUpw(passwordEncoder.encode(user.getUpw()));
         return userRepo.save(user);
     }
 
+    // ✅ 아이디 찾기
     @Transactional(readOnly = true)
     public String findId(String unm, String utel) {
         User user = userRepo.findByUnmAndUtel(unm, utel)
@@ -58,6 +68,7 @@ public class UserSvc {
         return user.getUid();
     }
 
+    // ✅ 비밀번호 재설정 링크 생성 및 이메일 발송
     @Transactional
     public void createPasswordResetTokenAndSendEmail(String umail) {
         User user = userRepo.findByUmail(umail)
@@ -75,6 +86,24 @@ public class UserSvc {
         }
     }
 
+    // ✅ 필터용 사용자 인증 (uid + upw)
+    public UserDetails checkUser(String uid, String upw) throws IllegalArgumentException {
+        User user = userRepo.findById(uid)
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 아이디 입니다."));
+        if (!passwordEncoder.matches(upw, user.getUpw())) {
+            throw new IllegalArgumentException("잘못된 비밀번호입니다.");
+        }
+        return new CustomUserDetails(user);
+    }
+
+    // ✅ 필터용 사용자 인증 (uid만)
+    public UserDetails checkUser(String uid) throws IllegalArgumentException {
+        User user = userRepo.findById(uid)
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 아이디 입니다."));
+        return new CustomUserDetails(user);
+    }
+
+    // ✅ 비밀번호 재설정
     @Transactional
     public void resetPassword(String token, String newPassword) {
         PswRsToken resetToken = pswRsTokenRepo.findByToken(token)
@@ -91,13 +120,16 @@ public class UserSvc {
         pswRsTokenRepo.delete(resetToken);
     }
 
+    // ✅ 전체 사용자 페이징
     @Transactional(readOnly = true)
     public Page<User> getPagedUsers(Pageable pageable) {
         return userRepo.findByEnabledTrue(pageable);
     }
 
+    // ✅ 사용자 검색
     @Transactional(readOnly = true)
     public Page<User> searchUsersByKeyword(String keyword, Pageable pageable) {
-        return userRepo.findByEnabledTrueAndUidContainingIgnoreCaseOrEnabledTrueAndUnmContainingIgnoreCase(keyword, keyword, pageable);
+        return userRepo.findByEnabledTrueAndUidContainingIgnoreCaseOrEnabledTrueAndUnmContainingIgnoreCase(
+                keyword, keyword, pageable);
     }
 }

@@ -6,5 +6,5 @@ public enum PaymentStatus {
     결제실패,
     환불요청,
     환불완료
-    // 실제 프로젝트에서 사용하는 상태만 넣으면 됨!
+
 }
