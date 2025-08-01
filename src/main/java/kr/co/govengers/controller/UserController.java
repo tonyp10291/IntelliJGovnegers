@@ -1,10 +1,13 @@
 package kr.co.govengers.controller;
 
-import kr.co.govengers.entity.Users;
+import kr.co.govengers.entity.User;
 import kr.co.govengers.service.UserSvc;
 import kr.co.govengers.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,10 +25,15 @@ public class UserController {
         try {
             String uid = loginRequest.get("uid");
             String upw = loginRequest.get("upw");
-            Users authenticatedUser = userSvc.login(uid, upw);
+            User authenticatedUser = userSvc.login(uid, upw);
+
             String token = jwtUtil.generateToken(authenticatedUser);
 
             Map<String, String> response = Map.of("message", "로그인 성공", "token", token);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            for(GrantedAuthority au : authentication.getAuthorities()){
+                System.out.println("/login  auth_role: " + au.getAuthority());
+            }
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
@@ -34,17 +42,12 @@ public class UserController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(@RequestBody Users user) {
+    public ResponseEntity<String> join(@RequestBody User user) {
         try {
             userSvc.join(user);
             return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(409).body(e.getMessage());
         }
-    }
-
-    @GetMapping("/test")
-    public String testEndpoint() {
-        return "UserController 테스트 성공!";
     }
 }

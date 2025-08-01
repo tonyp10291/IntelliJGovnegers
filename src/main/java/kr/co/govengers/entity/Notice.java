@@ -1,5 +1,6 @@
 package kr.co.govengers.entity;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

@@ -17,7 +17,7 @@ public class Inquiry {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private String title;
     private String content;
@@ -28,8 +28,9 @@ public class Inquiry {
     private String answer;
     private LocalDateTime answerAt;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private InquiryCategory category;
+    private InquiryCategory category = InquiryCategory.상품문의;
 
     @Builder.Default
     private boolean isPrivate = false;

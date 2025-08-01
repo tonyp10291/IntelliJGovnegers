@@ -13,7 +13,7 @@ public class UserAddress {
 
     @ManyToOne
     @JoinColumn(name = "uid")
-    private Users user;
+    private User user;
 
     private String receiverName;
     private String phone;
