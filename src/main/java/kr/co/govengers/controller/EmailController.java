@@ -20,7 +20,7 @@ public class EmailController {
     @PostMapping("/email/send-code")
     public ResponseEntity<String> sendVerificationEmail(@RequestBody Map<String, String> request) {
         try {
-            String email = request.get("umail");
+            String email = request.get("email");
             emailService.sendVerificationEmail(email);
             return ResponseEntity.ok("인증 이메일이 발송되었습니다.");
         } catch (Exception e) {

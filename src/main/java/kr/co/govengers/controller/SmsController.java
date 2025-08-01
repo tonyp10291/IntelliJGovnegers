@@ -14,6 +14,7 @@ import java.util.Map;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class SmsController {
+
     private final SmsSvc smsSvc;
 
     @PostMapping("/sms/send-code")
