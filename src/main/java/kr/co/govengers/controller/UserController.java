@@ -5,6 +5,7 @@ import kr.co.govengers.service.UserSvc;
 import kr.co.govengers.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -26,6 +27,7 @@ public class UserController {
             String token = jwtUtil.generateToken(authenticatedUser);
 
             Map<String, String> response = Map.of("message", "로그인 성공", "token", token);
+            System.out.println("Authentication??????" + SecurityContextHolder.getContext().getAuthentication());
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
@@ -41,10 +43,5 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(409).body(e.getMessage());
         }
-    }
-
-    @GetMapping("/test")
-    public String testEndpoint() {
-        return "UserController 테스트 성공!";
     }
 }
