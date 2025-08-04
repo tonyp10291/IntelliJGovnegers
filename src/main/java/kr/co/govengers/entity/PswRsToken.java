@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PswRsToken {
 
-    private static final int EXPIRATION_MINUTES = 30; // 토큰 유효시간 30분
+    private static final int EXPIRATION_MINUTES = 30;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -45,4 +45,8 @@ public interface UQnARepo extends JpaRepository<Inquiry, Long> {
             @Param("keyword") String keyword,
             @Param("userId") String userId
     );
+
+    long countByUserUid(String userId);
+
+    List<Inquiry> findByAnswerIsNullOrAnswerOrderByCreatedAtAsc(String s);
 }

@@ -15,7 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.Arrays;
 
 @Configuration
@@ -51,11 +50,17 @@ public class SecurityConfig {
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
-                                "/api/reset-password"
+                                "/api/reset-password",
+                                "/gogiImage/**",
+                                "/api/imgs/**",
+                                "/api/download/**"
                         ).permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/wishlist/user").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -66,8 +71,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:80",
+                "http://127.0.0.1:80"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
         configuration.setAllowCredentials(true);
         configuration.addAllowedHeader("*");
 

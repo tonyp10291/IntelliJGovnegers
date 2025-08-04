@@ -31,7 +31,7 @@ public class UQnAController {
             return ResponseEntity.ok(inquiries);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.ok(List.of()); // 오류 시 빈 리스트 반환
+            return ResponseEntity.ok(List.of());
         }
     }
 
@@ -60,6 +60,70 @@ public class UQnAController {
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "등록 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        }
+    }
+
+    /**
+     * 문의 수정 (PUT)
+     */
+    @PutMapping("/{inquiryId}")
+    public ResponseEntity<Map<String, Object>> updateInquiry(
+            @PathVariable Long inquiryId,
+            @RequestBody Inquiry inquiry,
+            @AuthenticationPrincipal User user
+    ) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            Inquiry updatedInquiry = uqnASvc.updateInquiry(inquiryId, inquiry, user.getUid());
+
+            response.put("success", true);
+            response.put("message", "수정되었습니다.");
+            response.put("data", updatedInquiry);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "수정 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        }
+    }
+
+    /**
+     * 문의 삭제 (DELETE)
+     */
+    @DeleteMapping("/{inquiryId}")
+    public ResponseEntity<Map<String, Object>> deleteInquiry(
+            @PathVariable Long inquiryId,
+            @AuthenticationPrincipal User user
+    ) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            uqnASvc.deleteInquiry(inquiryId, user.getUid());
+
+            response.put("success", true);
+            response.put("message", "삭제되었습니다.");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "삭제 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.status(400).body(response);
         }
     }
