@@ -17,6 +17,9 @@ public class Wishlist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "guest_id")
+    private String guestId;
+
     @ManyToOne
     @JoinColumn(name = "uid")
     private User user;

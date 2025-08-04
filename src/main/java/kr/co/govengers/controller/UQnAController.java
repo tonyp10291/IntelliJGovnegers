@@ -1,5 +1,6 @@
 package kr.co.govengers.controller;
 
+import kr.co.govengers.config.CustomUserDetails;
 import kr.co.govengers.entity.Inquiry;
 import kr.co.govengers.entity.User;
 import kr.co.govengers.service.UQnASvc;
@@ -38,7 +39,7 @@ public class UQnAController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> createInquiry(
             @RequestBody Inquiry inquiry,
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
         Map<String, Object> response = new HashMap<>();
 
@@ -49,7 +50,7 @@ public class UQnAController {
                 return ResponseEntity.status(401).body(response);
             }
 
-            Inquiry createdInquiry = uqnASvc.createInquiry(inquiry, user.getUid());
+            Inquiry createdInquiry = uqnASvc.createInquiry(inquiry, user.getUsername());
 
             response.put("success", true);
             response.put("message", "등록되었습니다.");

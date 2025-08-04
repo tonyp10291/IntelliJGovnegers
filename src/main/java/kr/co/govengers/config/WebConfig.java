@@ -1,4 +1,4 @@
-package kr.com.GoGiProject.config;
+package kr.co.govengers.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -24,14 +24,15 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:///" + uploadPath + "/");
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(
-                        "http://localhost:3000",
-                        "http://127.0.0.1:3000"
-                )
-                .allowCredentials(true)
-                .allowedMethods("*");
-    }
+    //SecurityConfig와 중복된 내용
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/api/**")
+//                .allowedOrigins(
+//                        "http://localhost",
+//                        "http://127.0.0.1"
+//                )
+//                .allowCredentials(true)
+//                .allowedMethods("*");
+//    }
 }

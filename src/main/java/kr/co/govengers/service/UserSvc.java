@@ -83,7 +83,7 @@ public class UserSvc {
     }
 
     //20250731_영미:
-    public UserDetails checkUser(String uid, String upw) throws IllegalArgumentException {
+        public UserDetails checkUser(String uid, String upw) throws IllegalArgumentException {
         System.out.println("CustomUserDetailsService loadUserByUserId 실행");
         User user = userRepo.findById(uid)
                 .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 아이디 입니다."));
