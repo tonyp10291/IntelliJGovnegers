@@ -39,24 +39,28 @@ public class JwtUtil {
                 .compact();
     }
 
-    //20250731_영미 (추가)
-    public Claims parseToken(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
-    //20250731_영미 (추가)
-    public boolean validateToken(String token) {
+    public String getUidFromToken(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractAllClaims(token).getExpiration().before(new Date());
+    }
+
+    public boolean isTokenValid(String token) {
         try {
-            Claims claims = parseToken(token);
-            return !claims.getExpiration().before(new Date()); // 만료 여부 확인
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+            return !isTokenExpired(token);
         } catch (Exception e) {
             return false;
         }
-    }
-
-    //20250731_영미 (추가)
-    public String getUserIdFromToken(String token) {
-        Claims claims = parseToken(token);
-        return claims.getSubject();
     }
 }

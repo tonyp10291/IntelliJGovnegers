@@ -1,14 +1,15 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
-import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
-import kr.co.govengers.entity.enums.SubCategory;
-import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "product")
 public class Product {
@@ -22,30 +23,30 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
-    @Enumerated(EnumType.STRING)
-    private SubCategory subCategory;
-
     @Column(nullable = false)
-    private int price;
-
-    @Column(nullable = false)
-    private int stock;
+    private Integer price;
 
     private String pdesc;
     private String origin;
-
     private LocalDate expDate;
 
     @Builder.Default
     private Integer hit = 0;
 
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private UserStatus userStatus = UserStatus.판매중;
+    private String image;
 
-    @Enumerated(EnumType.STRING)
     @Builder.Default
-    private AdminStatus adminStatus = AdminStatus.판매중;
+    private Integer soldout = 0;
 
-    private String imgFilename;
+    public void updateFrom(Product updated) {
+        if (updated.getPnm() != null) this.pnm = updated.getPnm();
+        if (updated.getMainCategory() != null) this.mainCategory = updated.getMainCategory();
+        if (updated.getPrice() != null) this.price = updated.getPrice();
+        if (updated.getPdesc() != null) this.pdesc = updated.getPdesc();
+        if (updated.getOrigin() != null) this.origin = updated.getOrigin();
+        if (updated.getExpDate() != null) this.expDate = updated.getExpDate();
+        if (updated.getHit() != null) this.hit = updated.getHit();
+        if (updated.getImage() != null) this.image = updated.getImage();
+        if (updated.getSoldout() != null) this.soldout = updated.getSoldout();
+    }
 }

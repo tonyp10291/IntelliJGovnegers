@@ -23,16 +23,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/api/download/**")
                 .addResourceLocations("file:///" + uploadPath + "/");
     }
-
-    //SecurityConfig와 중복된 내용
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/api/**")
-//                .allowedOrigins(
-//                        "http://localhost",
-//                        "http://127.0.0.1"
-//                )
-//                .allowCredentials(true)
-//                .allowedMethods("*");
-//    }
 }

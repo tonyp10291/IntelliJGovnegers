@@ -1,5 +1,6 @@
 package kr.co.govengers.config;
 
+import kr.co.govengers.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomAuthenticationFilter custFilter;
+    private final JwtFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,7 +44,7 @@ public class SecurityConfig {
                                 "/api/email/**",
                                 "/api/sms/**",
                                 "/api/products/**",
-                                "/api/wishlist",
+                                "/api/wishlist/guest",
                                 "/api/search/**",
                                 "/api/notice/**",
                                 "/api/review/**",
@@ -51,7 +52,10 @@ public class SecurityConfig {
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
-                                "/api/reset-password"
+                                "/api/reset-password",
+                                "/gogiImage/**",
+                                "/api/imgs/**",
+                                "/api/download/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
@@ -60,14 +64,19 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 //20250731_영미 추가 로직
-                .addFilterBefore(custFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost", "http://127.0.0.1"));
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:80",
+                "http://127.0.0.1:80"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowCredentials(true);
         configuration.addAllowedHeader("*");

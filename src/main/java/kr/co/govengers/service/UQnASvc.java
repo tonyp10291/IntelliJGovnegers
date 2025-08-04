@@ -42,8 +42,47 @@ public class UQnASvc {
     public Inquiry createInquiry(Inquiry inquiry, String userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         inquiry.setUser(user);
+
         return uqnARepo.save(inquiry);
+    }
+
+    @Transactional
+    public Inquiry updateInquiry(Long inquiryId, Inquiry updatedInquiry, String userId) {
+        Inquiry existingInquiry = uqnARepo.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+
+        if (existingInquiry.getUser() == null || !existingInquiry.getUser().getUid().equals(userId)) {
+            throw new SecurityException("이 문의를 수정할 권한이 없습니다.");
+        }
+
+        if (existingInquiry.getAnswer() != null && !existingInquiry.getAnswer().isBlank()) {
+            throw new IllegalStateException("답변이 달린 문의는 수정할 수 없습니다.");
+        }
+
+        existingInquiry.setTitle(updatedInquiry.getTitle());
+        existingInquiry.setContent(updatedInquiry.getContent());
+        existingInquiry.setCategory(updatedInquiry.getCategory());
+        existingInquiry.setIsPrivate(updatedInquiry.getIsPrivate());
+
+        return uqnARepo.save(existingInquiry);
+    }
+
+    @Transactional
+    public void deleteInquiry(Long inquiryId, String userId) {
+        Inquiry inquiry = uqnARepo.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+
+        if (inquiry.getUser() == null || !inquiry.getUser().getUid().equals(userId)) {
+            throw new SecurityException("이 문의를 삭제할 권한이 없습니다.");
+        }
+
+        if (inquiry.getAnswer() != null && !inquiry.getAnswer().isBlank()) {
+            throw new IllegalStateException("답변이 달린 문의는 삭제할 수 없습니다.");
+        }
+
+        uqnARepo.delete(inquiry);
     }
 
     @Transactional(readOnly = true)
@@ -58,5 +97,15 @@ public class UQnASvc {
         }
 
         return inquiry;
+    }
+
+    @Transactional(readOnly = true)
+    public long countInquiriesByUser(String userId) {
+        return uqnARepo.countByUserUid(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Inquiry> findPendingInquiries() {
+        return uqnARepo.findByAnswerIsNullOrAnswerOrderByCreatedAtAsc("");
     }
 }
