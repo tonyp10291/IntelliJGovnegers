@@ -1,13 +1,23 @@
 package kr.co.govengers.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
-@Data
+@Getter
+@Setter
 public class ProductRegisterRequest {
-    private String name;
+    private String pnm;
     private String mainCategory;
-    private int price;
-    private String description;
-    private int stock;
-    private int hit;
+    private String subCategory;
+    private Integer price;
+    private String pdesc;
+    private String origin;
+    private String expDate;
+    private Integer hit;
+    private Integer soldout;
+    private String userStatus;
+    private String adminStatus;
+    private MultipartFile image;
+
 }

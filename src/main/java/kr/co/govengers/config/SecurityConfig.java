@@ -1,9 +1,10 @@
 package kr.co.govengers.config;
 
-import kr.co.govengers.filter.JwtAuthenticationFilter; // 수정
+import kr.co.govengers.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,7 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.Arrays;
 
 @Configuration
@@ -22,7 +22,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,9 +37,30 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/products").permitAll()
-                        .requestMatchers("/api/login", "/api/join", "/api/email/**", "/api/sms/**").permitAll()
+                        .requestMatchers(
+                                "/api/login",
+                                "/api/join",
+                                "/api/email/**",
+                                "/api/sms/**",
+                                "/api/products/**",
+                                "/api/search/**",
+                                "/api/notice/**",
+                                "/api/review/**",
+                                "/api/inquiry/**",
+                                "/api/find-id",
+                                "/api/find-id-by-email",
+                                "/api/request-password-reset",
+                                "/api/reset-password",
+                                "/gogiImage/**",
+                                "/api/imgs/**",
+                                "/api/download/**"
+                        ).permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/wishlist/user").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -50,8 +71,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://localhost:80",
+                "http://127.0.0.1:80"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
         configuration.setAllowCredentials(true);
         configuration.addAllowedHeader("*");
 
