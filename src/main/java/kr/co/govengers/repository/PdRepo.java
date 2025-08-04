@@ -36,6 +36,8 @@ public interface PdRepo extends JpaRepository<Product, Integer> {
 
     Page<Product> findByMainCategory(MainCategory mainCategory, Pageable pageable);
     Page<Product> findByPnmContainingIgnoreCase(String keyword, Pageable pageable);
+    Page<Product> findByMainCategoryAndSubCategory(MainCategory mainCategory, String subCategory, Pageable pageable);
+
 
     @Modifying
     @Query("UPDATE Product p SET p.hit = p.hit + 1 WHERE p.pid = :pid")
@@ -57,4 +59,8 @@ public interface PdRepo extends JpaRepository<Product, Integer> {
     List<Product> findAllByOrderByHitDesc();
     List<Product> findByPnmContainingIgnoreCaseAndMainCategory(String keyword, MainCategory category);
     List<Product> findAllByOrderByPidDesc();
+
+
+
+
 }

@@ -23,6 +23,9 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 
+    @Column(name = "sub_category")
+    private String subCategory;
+
     @Column(nullable = false)
     private Integer price;
 

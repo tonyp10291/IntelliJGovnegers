@@ -29,11 +29,17 @@ public class PdController {
 
     private final PdSvc pdSvc;
 
-    @GetMapping("/pageable")
-    public ResponseEntity<Page<Product>> getAllProductsWithPageable(
-            @PageableDefault(size = 12, sort = "pid", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Product> products = pdSvc.getAllProducts(pageable);
-        return ResponseEntity.ok(products);
+    @GetMapping
+    public ResponseEntity<Page<Product>> getAllProductsWithPaging(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String mainCategory,
+            @RequestParam(required = false) String subCategory,
+            @RequestParam(required = false) String search
+    ) {
+
+        Page<Product> result = pdSvc.getAllProductsPaging(page - 1, size, mainCategory, subCategory, search);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/list")
