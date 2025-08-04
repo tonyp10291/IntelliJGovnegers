@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
+                                "/api/verify-user-for-password-reset",
                                 "/api/reset-password",
                                 "/gogiImage/**",
                                 "/api/imgs/**",
