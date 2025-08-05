@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 
-public interface UPicRepository extends JpaRepository<Wishlist, Long> {
+public interface UPicRepo extends JpaRepository<Wishlist, Long> {
 
     @Query("SELECT w FROM Wishlist w JOIN FETCH w.product WHERE w.guestId = :guestId")
     Page<Wishlist> findByGuestIdWithProduct(String guestId, Pageable pageable);
+
+    Wishlist findByIdAndGuestId(Integer pid, String guestId);
 }
