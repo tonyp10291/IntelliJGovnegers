@@ -1,5 +1,7 @@
 package kr.co.govengers.dto;
 
+import kr.co.govengers.entity.enums.AdminStatus;
+import kr.co.govengers.entity.enums.UserStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductRegisterRequest {
     private String pnm;
     private String mainCategory;
-    private String subCategory;
     private Integer price;
     private String pdesc;
     private String origin;
@@ -19,5 +20,4 @@ public class ProductRegisterRequest {
     private String userStatus;
     private String adminStatus;
     private MultipartFile image;
-
 }

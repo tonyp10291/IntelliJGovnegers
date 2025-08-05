@@ -64,9 +64,6 @@ public class UQnAController {
         }
     }
 
-    /**
-     * 문의 수정 (PUT)
-     */
     @PutMapping("/{inquiryId}")
     public ResponseEntity<Map<String, Object>> updateInquiry(
             @PathVariable Long inquiryId,
@@ -97,9 +94,6 @@ public class UQnAController {
         }
     }
 
-    /**
-     * 문의 삭제 (DELETE)
-     */
     @DeleteMapping("/{inquiryId}")
     public ResponseEntity<Map<String, Object>> deleteInquiry(
             @PathVariable Long inquiryId,

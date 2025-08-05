@@ -8,32 +8,65 @@ import kr.co.govengers.entity.enums.MainCategory;
 import kr.co.govengers.service.PdSvc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/admin/products")
 @RequiredArgsConstructor
 public class PdController {
 
     private final PdSvc pdSvc;
 
-    @GetMapping("/pageable")
-    public ResponseEntity<Page<Product>> getAllProductsWithPageable(
-            @PageableDefault(size = 12, sort = "pid", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Product> products = pdSvc.getAllProducts(pageable);
-        return ResponseEntity.ok(products);
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllProductsWithPaging(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String mainCategory,
+            @RequestParam(required = false) String search,
+            @AuthenticationPrincipal User user,
+            Authentication authentication
+    ) {
+
+        System.out.println("=== 관리자 상품 목록 조회 ===");
+        System.out.println("Authentication: " + authentication);
+        System.out.println("현재 사용자: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
+        System.out.println("페이지: " + page + ", 사이즈: " + size);
+        System.out.println("카테고리: " + mainCategory + ", 검색어: " + search);
+
+        try {
+            Page<Product> result = pdSvc.getAllProductsPaging(page - 1, size, mainCategory, search);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", result.getContent());
+            response.put("totalPages", result.getTotalPages());
+            response.put("totalElements", result.getTotalElements());
+            response.put("currentPage", page);
+            response.put("size", size);
+            response.put("numberOfElements", result.getNumberOfElements());
+
+            System.out.println("조회된 상품 수: " + result.getContent().size());
+            System.out.println("총 페이지 수: " + result.getTotalPages());
+            System.out.println("==============================");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("상품 목록 조회 중 에러: " + e.getMessage());
+            e.printStackTrace();
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("content", new java.util.ArrayList<>());
+            errorResponse.put("totalPages", 0);
+            errorResponse.put("totalElements", 0);
+            errorResponse.put("error", e.getMessage());
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @GetMapping("/list")
@@ -42,18 +75,30 @@ public class PdController {
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/{pid}")
-    public ResponseEntity<ProductDto> getProductById(@PathVariable Integer pid) {
-        try {
-            ProductDto product = pdSvc.getProductById(pid);
-            return ResponseEntity.ok(product);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+@GetMapping("/{pid}")
+public ResponseEntity<ProductDto> getProductById(
+        @PathVariable Integer pid,
+        @AuthenticationPrincipal User user
+) {
+    System.out.println("=== 관리자 개별 상품 조회 ===");
+    System.out.println("상품 ID: " + pid);
+    System.out.println("현재 사용자: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
+
+    try {
+        ProductDto product = pdSvc.getProductById(pid);
+        System.out.println("조회된 상품: " + product.getPnm());
+        return ResponseEntity.ok(product);
+    } catch (IllegalArgumentException e) {
+        System.out.println("상품을 찾을 수 없음: " + e.getMessage());
+        return ResponseEntity.notFound().build();
+    } catch (Exception e) {
+        System.out.println("상품 조회 중 에러: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(500).build();
     }
+}
 
     @GetMapping("/{pid}/entity")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDto> getProductEntity(@PathVariable Integer pid) {
         ProductDto product = pdSvc.getProductById(pid);
         return ResponseEntity.ok(product);
@@ -84,18 +129,36 @@ public class PdController {
     }
 
     @PostMapping("/register")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> registerProduct(
             @ModelAttribute ProductRegisterRequest request,
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal User user,
+            Authentication authentication
     ) {
         Map<String, Object> response = new HashMap<>();
 
+
+        System.out.println("=== 관리자 상품 등록 컨트롤러 ===");
+        System.out.println("Authentication 객체: " + authentication);
+        System.out.println("현재 사용자: " + (authentication != null ? authentication.getName() : "없음"));
+        System.out.println("현재 권한: " + (authentication != null ? authentication.getAuthorities() : "없음"));
+        System.out.println("인증 여부: " + (authentication != null ? authentication.isAuthenticated() : false));
+        System.out.println("@AuthenticationPrincipal User: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
+        System.out.println("요청 데이터: " + request);
+        System.out.println("================================");
+
         try {
             if (user == null) {
+                System.out.println("사용자가 null입니다!");
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.status(401).body(response);
+            }
+
+            if (!"ROLE_ADMIN".equals(user.getRole())) {
+                System.out.println("관리자 권한이 없습니다. 현재 권한: " + user.getRole());
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return ResponseEntity.status(403).body(response);
             }
 
             pdSvc.registerProduct(request, request.getImage());
@@ -105,6 +168,7 @@ public class PdController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            System.out.println("상품 등록 중 에러: " + e.getMessage());
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "상품 등록 중 오류가 발생했습니다: " + e.getMessage());
@@ -113,7 +177,6 @@ public class PdController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> createProduct(
             @RequestBody Product product,
             @AuthenticationPrincipal User user
@@ -134,7 +197,6 @@ public class PdController {
     }
 
     @PutMapping("/{pid}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> updateProduct(
             @PathVariable Integer pid,
             @RequestBody Product updatedProduct,
@@ -160,7 +222,6 @@ public class PdController {
     }
 
     @DeleteMapping("/{pid}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteProduct(
             @PathVariable Integer pid,
             @AuthenticationPrincipal User user
@@ -184,7 +245,6 @@ public class PdController {
     }
 
     @PostMapping("/{pid}/image")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> uploadProductImage(
             @PathVariable Integer pid,
             @RequestParam("file") MultipartFile file,
@@ -206,7 +266,6 @@ public class PdController {
     }
 
     @PatchMapping("/{pid}/hit")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> toggleHit(
             @PathVariable Integer pid,
             @RequestBody Map<String, Integer> request,
@@ -227,7 +286,6 @@ public class PdController {
     }
 
     @PatchMapping("/{pid}/soldout")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> toggleSoldout(
             @PathVariable Integer pid,
             @RequestBody Map<String, Integer> request,
@@ -248,7 +306,6 @@ public class PdController {
     }
 
     @PutMapping("/{pid}/price")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> updatePrice(
             @PathVariable Integer pid,
             @RequestParam int price,

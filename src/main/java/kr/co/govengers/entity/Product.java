@@ -1,7 +1,9 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
+import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
+import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -38,6 +40,14 @@ public class Product {
     @Builder.Default
     private Integer soldout = 0;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "admin_status")
+    private AdminStatus adminStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_status")
+    private UserStatus userStatus;
+
     public void updateFrom(Product updated) {
         if (updated.getPnm() != null) this.pnm = updated.getPnm();
         if (updated.getMainCategory() != null) this.mainCategory = updated.getMainCategory();
@@ -48,5 +58,7 @@ public class Product {
         if (updated.getHit() != null) this.hit = updated.getHit();
         if (updated.getImage() != null) this.image = updated.getImage();
         if (updated.getSoldout() != null) this.soldout = updated.getSoldout();
+        if (updated.getAdminStatus() != null) this.adminStatus = updated.getAdminStatus();
+        if (updated.getUserStatus() != null) this.userStatus = updated.getUserStatus();
     }
 }

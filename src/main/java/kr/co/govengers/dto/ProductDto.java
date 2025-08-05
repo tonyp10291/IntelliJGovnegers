@@ -1,5 +1,7 @@
 package kr.co.govengers.dto;
 
+import kr.co.govengers.entity.enums.AdminStatus;
+import kr.co.govengers.entity.enums.UserStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +13,6 @@ public class ProductDto {
     private Integer pid;
     private String pnm;
     private String mainCategory;
-    private String subCategory;
     private Integer price;
     private String pdesc;
     private String origin;
@@ -19,4 +20,6 @@ public class ProductDto {
     private LocalDate expDate;
     private Integer hit;
     private String image;
+    private AdminStatus adminStatus;
+    private UserStatus userStatus;
 }
