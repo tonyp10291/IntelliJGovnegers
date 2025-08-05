@@ -39,4 +39,7 @@ public class Inquiry {
     public boolean getIsPrivate() {
         return isPrivate;
     }
+
+    public void setIsPrivate(boolean isPrivate) {
+    }
 }

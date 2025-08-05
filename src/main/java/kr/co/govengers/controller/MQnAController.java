@@ -59,7 +59,6 @@ public class MQnAController {
         }
     }
 
-    // 관리자 답변 등록/수정
     @PostMapping("/{inquiryId}/answer")
     public ResponseEntity<Map<String, Object>> addOrUpdateAnswer(
             @PathVariable Long inquiryId,
@@ -67,7 +66,7 @@ public class MQnAController {
     ) {
         try {
             String answer = request.get("answer");
-            String adminId = request.get("adminId"); // JWT에서 추출한 관리자 ID
+            String adminId = request.get("adminId");
 
             Inquiry updatedInquiry = mqnaSvc.addAnswer(inquiryId, answer, adminId);
 
@@ -85,7 +84,6 @@ public class MQnAController {
         }
     }
 
-    // 문의 삭제 (관리자 권한)
     @DeleteMapping("/{inquiryId}")
     public ResponseEntity<Map<String, Object>> deleteInquiry(@PathVariable Long inquiryId) {
         try {
@@ -104,7 +102,6 @@ public class MQnAController {
         }
     }
 
-    // 대시보드용 통계 정보
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Object> stats = new HashMap<>();

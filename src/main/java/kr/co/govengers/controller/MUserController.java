@@ -1,5 +1,6 @@
 package kr.co.govengers.controller;
 
+import kr.co.govengers.entity.User;
 import kr.co.govengers.repository.UserRepo;
 import kr.co.govengers.service.UserSvc;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/user")
+@RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
 public class MUserController {
 
