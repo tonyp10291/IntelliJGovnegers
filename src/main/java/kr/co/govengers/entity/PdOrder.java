@@ -1,4 +1,4 @@
-package kr.co.govengers.entity;//package kr.co.govengers.entity;
+//package kr.co.govengers.entity;
 //
 //import jakarta.persistence.*;
 //import kr.co.govengers.entity.enums.OrderStatus;

@@ -3,7 +3,6 @@ package kr.co.govengers.controller;
 import kr.co.govengers.dto.NoticeDTO;
 import kr.co.govengers.entity.Notice;
 import kr.co.govengers.repository.NTRepo;
-import kr.co.govengers.service.NTSvc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

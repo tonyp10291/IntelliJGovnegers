@@ -1,6 +1,9 @@
 package kr.co.govengers.controller;
 
-import kr.co.govengers.dto.ProductDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import kr.co.govengers.dto.ProductDTO;
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
 import kr.co.govengers.entity.User;
@@ -8,22 +11,105 @@ import kr.co.govengers.entity.enums.MainCategory;
 import kr.co.govengers.service.PdSvc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/admin/products")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class PdController {
 
     private final PdSvc pdSvc;
 
-    @GetMapping
+    @GetMapping("/api/products/list")
+    public ResponseEntity<List<Product>> getAllProductsList() {
+        List<Product> products = pdSvc.getProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products")
+    public ResponseEntity<List<Product>> getAllProducts() {
+        List<Product> products = pdSvc.getProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products/pageable")
+    public ResponseEntity<Page<Product>> getAllProductsWithPageable(
+            @PageableDefault(size = 12, sort = "pid", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<Product> products = pdSvc.getAllProducts(pageable);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products/{pid}")
+    public ResponseEntity<ProductDTO> getProductById(
+            @PathVariable Integer pid,
+            @AuthenticationPrincipal User user
+    ) {
+        try {
+            ProductDTO product = pdSvc.getProductById(pid);
+            return ResponseEntity.ok(product);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/api/products/category/{category}")
+    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable MainCategory category) {
+        List<Product> products = pdSvc.getProductsByCategory(category);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String keyword) {
+        List<Product> products = pdSvc.searchProducts(keyword);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products/popular")
+    public ResponseEntity<List<Product>> getPopularProducts() {
+        List<Product> products = pdSvc.getPopularProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products/latest")
+    public ResponseEntity<List<Product>> getLatestProducts() {
+        List<Product> products = pdSvc.getLatestProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/products/categories")
+    public ResponseEntity<MainCategory[]> getCategories() {
+        return ResponseEntity.ok(MainCategory.values());
+    }
+
+    @GetMapping("/api/admin/products/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Product>> getAllProductsListAdmin() {
+        List<Product> products = pdSvc.getProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/admin/products")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Product>> getAllProductsAdmin() {
+        List<Product> products = pdSvc.getProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/api/admin/products/paging")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getAllProductsWithPaging(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -32,7 +118,6 @@ public class PdController {
             @AuthenticationPrincipal User user,
             Authentication authentication
     ) {
-
         System.out.println("=== 관리자 상품 목록 조회 ===");
         System.out.println("Authentication: " + authentication);
         System.out.println("현재 사용자: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
@@ -60,7 +145,7 @@ public class PdController {
             e.printStackTrace();
 
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("content", new java.util.ArrayList<>());
+            errorResponse.put("content", new ArrayList<>());
             errorResponse.put("totalPages", 0);
             errorResponse.put("totalElements", 0);
             errorResponse.put("error", e.getMessage());
@@ -69,73 +154,73 @@ public class PdController {
         }
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<List<Product>> getAllProductsList() {
-        List<Product> products = pdSvc.getProducts();
-        return ResponseEntity.ok(products);
+    @GetMapping("/api/admin/products/{pid}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> getProductByIdAdmin(
+            @PathVariable Integer pid,
+            @AuthenticationPrincipal User user
+    ) {
+        System.out.println("=== 관리자 개별 상품 조회 ===");
+        System.out.println("상품 ID: " + pid);
+        System.out.println("현재 사용자: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
+
+        try {
+            ProductDTO product = pdSvc.getProductById(pid);
+            System.out.println("조회된 상품: " + product.getPnm());
+            return ResponseEntity.ok(product);
+        } catch (IllegalArgumentException e) {
+            System.out.println("상품을 찾을 수 없음: " + e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            System.out.println("상품 조회 중 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
-@GetMapping("/{pid}")
-public ResponseEntity<ProductDto> getProductById(
-        @PathVariable Integer pid,
-        @AuthenticationPrincipal User user
-) {
-    System.out.println("=== 관리자 개별 상품 조회 ===");
-    System.out.println("상품 ID: " + pid);
-    System.out.println("현재 사용자: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
-
-    try {
-        ProductDto product = pdSvc.getProductById(pid);
-        System.out.println("조회된 상품: " + product.getPnm());
-        return ResponseEntity.ok(product);
-    } catch (IllegalArgumentException e) {
-        System.out.println("상품을 찾을 수 없음: " + e.getMessage());
-        return ResponseEntity.notFound().build();
-    } catch (Exception e) {
-        System.out.println("상품 조회 중 에러: " + e.getMessage());
-        e.printStackTrace();
-        return ResponseEntity.status(500).build();
-    }
-}
-
-    @GetMapping("/{pid}/entity")
-    public ResponseEntity<ProductDto> getProductEntity(@PathVariable Integer pid) {
-        ProductDto product = pdSvc.getProductById(pid);
+    @GetMapping("/api/admin/products/{pid}/entity")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> getProductEntity(@PathVariable Integer pid) {
+        ProductDTO product = pdSvc.getProductById(pid);
         return ResponseEntity.ok(product);
     }
 
-    @GetMapping("/category/{category}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable MainCategory category) {
+    @GetMapping("/api/admin/products/category/{category}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Product>> getProductsByCategoryAdmin(@PathVariable MainCategory category) {
         List<Product> products = pdSvc.getProductsByCategory(category);
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<Product>> searchProducts(@RequestParam String keyword) {
+    @GetMapping("/api/admin/products/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Product>> searchProductsAdmin(@RequestParam String keyword) {
         List<Product> products = pdSvc.searchProducts(keyword);
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/popular")
-    public ResponseEntity<List<Product>> getPopularProducts() {
+    @GetMapping("/api/admin/products/popular")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Product>> getPopularProductsAdmin() {
         List<Product> products = pdSvc.getPopularProducts();
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/latest")
-    public ResponseEntity<List<Product>> getLatestProducts() {
+    @GetMapping("/api/admin/products/latest")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Product>> getLatestProductsAdmin() {
         List<Product> products = pdSvc.getLatestProducts();
         return ResponseEntity.ok(products);
     }
 
-    @PostMapping("/register")
+    @PostMapping("/api/admin/products/register")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> registerProduct(
             @ModelAttribute ProductRegisterRequest request,
             @AuthenticationPrincipal User user,
             Authentication authentication
     ) {
         Map<String, Object> response = new HashMap<>();
-
 
         System.out.println("=== 관리자 상품 등록 컨트롤러 ===");
         System.out.println("Authentication 객체: " + authentication);
@@ -161,10 +246,11 @@ public ResponseEntity<ProductDto> getProductById(
                 return ResponseEntity.status(403).body(response);
             }
 
-            pdSvc.registerProduct(request, request.getImage());
+            Product registeredProduct = pdSvc.registerProduct(request, request.getImage());
 
             response.put("success", true);
             response.put("message", "상품이 성공적으로 등록되었습니다.");
+            response.put("product", registeredProduct);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -176,7 +262,8 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @PostMapping
+    @PostMapping("/api/admin/products")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> createProduct(
             @RequestBody Product product,
             @AuthenticationPrincipal User user
@@ -196,7 +283,64 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @PutMapping("/{pid}")
+    @PostMapping("/api/admin/products/{pid}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> updateProductWithFile(
+            @PathVariable Integer pid,
+            @RequestParam("productData") String productData,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @AuthenticationPrincipal User user,
+            Authentication authentication
+    ) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        Product product = null;
+        try {
+            product = objectMapper.readValue(productData, Product.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("=== 상품 수정 요청 ===");
+        System.out.println("상품 ID: " + pid);
+        System.out.println("사용자: " + (user != null ? user.getUid() + " / " + user.getRole() : "null"));
+        System.out.println("파일: " + (file != null ? file.getOriginalFilename() : "없음"));
+        System.out.println("상품 데이터: " + product);
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            String savedFilename = null;
+
+            if (file != null && !file.isEmpty()) {
+                try {
+                    savedFilename = pdSvc.saveImageFile(file);
+                    product.setImage(savedFilename);
+                } catch (IOException e) {
+                    throw new RuntimeException("이미지 저장 실패: " + e.getMessage(), e);
+                }
+            }
+            // 파일이 없으면 기존 이미지 유지 (product.setImage() 호출하지 않음)
+
+            Product updated = pdSvc.updateProduct(pid, product);
+
+            response.put("success", true);
+            response.put("message", "상품이 수정되었습니다.");
+            response.put("product", updated);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(404).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "상품 수정 실패: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PutMapping("/api/admin/products/{pid}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> updateProduct(
             @PathVariable Integer pid,
             @RequestBody Product updatedProduct,
@@ -221,7 +365,8 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @DeleteMapping("/{pid}")
+    @DeleteMapping("/api/admin/products/{pid}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteProduct(
             @PathVariable Integer pid,
             @AuthenticationPrincipal User user
@@ -244,7 +389,8 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @PostMapping("/{pid}/image")
+    @PostMapping("/api/admin/products/{pid}/image")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> uploadProductImage(
             @PathVariable Integer pid,
             @RequestParam("file") MultipartFile file,
@@ -258,6 +404,10 @@ public ResponseEntity<ProductDto> getProductById(
             response.put("message", "이미지가 업로드되었습니다.");
             response.put("filename", filename);
             return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            response.put("success", false);
+            response.put("message", "이미지 업로드 실패: " + e.getMessage());
+            return ResponseEntity.status(400).body(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "이미지 업로드 실패: " + e.getMessage());
@@ -265,7 +415,8 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @PatchMapping("/{pid}/hit")
+    @PatchMapping("/api/admin/products/{pid}/hit")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> toggleHit(
             @PathVariable Integer pid,
             @RequestBody Map<String, Integer> request,
@@ -285,7 +436,8 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @PatchMapping("/{pid}/soldout")
+    @PatchMapping("/api/admin/products/{pid}/soldout")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> toggleSoldout(
             @PathVariable Integer pid,
             @RequestBody Map<String, Integer> request,
@@ -305,7 +457,8 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @PutMapping("/{pid}/price")
+    @PutMapping("/api/admin/products/{pid}/price")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> updatePrice(
             @PathVariable Integer pid,
             @RequestParam int price,
@@ -332,8 +485,9 @@ public ResponseEntity<ProductDto> getProductById(
         }
     }
 
-    @GetMapping("/categories")
-    public ResponseEntity<MainCategory[]> getCategories() {
+    @GetMapping("/api/admin/products/categories")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MainCategory[]> getCategoriesAdmin() {
         return ResponseEntity.ok(MainCategory.values());
     }
 }

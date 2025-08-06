@@ -51,11 +51,9 @@ public class Product {
         if (updated.getImage() != null) this.image = updated.getImage();
         if (updated.getSoldout() != null) this.soldout = updated.getSoldout();
     }
-    //포인트
     public int calculatePoint(){
         return (int) (this.price * 0.05);
     }
-    //배송비
     public int shippingCost(){
         return 3500;
     }

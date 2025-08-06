@@ -1,13 +1,13 @@
 package kr.co.govengers.dto;
 
-import kr.co.govengers.entity.enums.AdminStatus;
-import kr.co.govengers.entity.enums.UserStatus;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
+@ToString
 public class ProductRegisterRequest {
     private String pnm;
     private String mainCategory;
@@ -20,4 +20,5 @@ public class ProductRegisterRequest {
     private String userStatus;
     private String adminStatus;
     private MultipartFile image;
+
 }

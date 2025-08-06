@@ -22,7 +22,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtAuthenticationFilter;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,12 +37,11 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-
                         .requestMatchers("/api/images/**").permitAll()
                         .requestMatchers("/gogiImage/**").permitAll()
-                        .requestMatchers("/api/imges/**").permitAll()
+                        .requestMatchers("/api/imgs/**").permitAll()
+                        .requestMatchers("/img/**").permitAll()
                         .requestMatchers("/api/download/**").permitAll()
-
 
                         .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
@@ -50,13 +49,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
 
+                                .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers(
                                 "/api/login",
                                 "/api/join",
                                 "/api/email/**",
                                 "/api/sms/**",
                                 "/api/products/**",
-                                "/api/wishlist/guest/**",
+                                "/api/wishlist/guest",
                                 "/api/search/**",
                                 "/api/notices/**",
                                 "/api/reviews/**",
@@ -64,6 +64,7 @@ public class SecurityConfig {
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
+                                "/api/verify-user-for-password-reset",
                                 "/api/reset-password",
                                 "/api/cart/**"
                         ).permitAll()
@@ -77,7 +78,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/wishlist/migrate").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
