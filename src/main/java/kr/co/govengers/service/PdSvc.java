@@ -1,6 +1,6 @@
 package kr.co.govengers.service;
 
-import kr.co.govengers.dto.ProductDto;
+import kr.co.govengers.dto.ProductDTO;
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
 import kr.co.govengers.entity.enums.AdminStatus;
@@ -44,21 +44,21 @@ public class PdSvc {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductDto> getProducts(int page, int size, String mainCategory, String search) {
+    public Page<ProductDTO> getProducts(int page, int size, String mainCategory, String search) {
         Pageable pageable = PageRequest.of(page, size);
 
         List<Product> all = PdRepo.findAll();
-        List<ProductDto> filtered = all.stream()
+        List<ProductDTO> filtered = all.stream()
                 .filter(p -> mainCategory == null || mainCategory.isBlank() ||
                         (p.getMainCategory() != null && p.getMainCategory().name().equals(mainCategory)))
                 .filter(p -> search == null || search.isBlank() ||
                         (p.getPnm() != null && p.getPnm().toLowerCase().contains(search.toLowerCase())))
-                .map(this::convertToDto)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), filtered.size());
-        List<ProductDto> pageList = filtered.subList(start, end);
+        List<ProductDTO> pageList = filtered.subList(start, end);
 
         return new PageImpl<>(pageList, pageable, filtered.size());
     }
@@ -79,7 +79,7 @@ public class PdSvc {
     }
 
     @Transactional(readOnly = true)
-    public ProductDto getProductById(Integer pid) {
+    public ProductDTO getProductById(Integer pid) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
@@ -89,7 +89,7 @@ public class PdSvc {
             log.warn("조회수 증가 실패 (상품 조회는 정상 진행): {}", e.getMessage());
         }
 
-        return convertToDto(product);
+        return convertToDTO(product);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -135,7 +135,7 @@ public class PdSvc {
         return PdRepo.findByPriceBetween(minPrice, maxPrice);
     }
 
-    public void registerProduct(ProductRegisterRequest req, MultipartFile imageFile) {
+    public Product registerProduct(ProductRegisterRequest req, MultipartFile imageFile) {
         String savedFilename = null;
 
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -163,11 +163,9 @@ public class PdSvc {
                 .hit(req.getHit() != null ? req.getHit() : 0)
                 .image(savedFilename)
                 .soldout(req.getSoldout() != null ? req.getSoldout() : 0)
-                .adminStatus(req.getAdminStatus() != null ? AdminStatus.valueOf(req.getAdminStatus()) : null)
-                .userStatus(req.getUserStatus() != null ? UserStatus.valueOf(req.getUserStatus()) : null)
                 .build();
 
-        PdRepo.save(product);
+        return PdRepo.save(product);
     }
 
     @Transactional
@@ -198,12 +196,6 @@ public class PdSvc {
         }
         if (updatedProduct.getSoldout() != null) {
             product.setSoldout(updatedProduct.getSoldout());
-        }
-        if (updatedProduct.getAdminStatus() != null) {
-            product.setAdminStatus(updatedProduct.getAdminStatus());
-        }
-        if (updatedProduct.getUserStatus() != null) {
-            product.setUserStatus(updatedProduct.getUserStatus());
         }
         if (updatedProduct.getImage() != null) {
             product.setImage(updatedProduct.getImage());
@@ -288,11 +280,6 @@ public class PdSvc {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> getOutOfStockProducts() {
-        return PdRepo.findBySoldout(1);
-    }
-
-    @Transactional(readOnly = true)
     public List<Product> getProductsByOrigin(String origin) {
         return PdRepo.findByOrigin(origin);
     }
@@ -307,8 +294,25 @@ public class PdSvc {
         return PdRepo.countByCategoryAndAvailable(category);
     }
 
-    private ProductDto convertToDto(Product product) {
-        return ProductDto.builder()
+    @Transactional(readOnly = true)
+    public Page<Product> getAllProductsPaging(int page, int size, String mainCategory, String search) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("pid").descending());
+
+        if ((mainCategory == null || mainCategory.isBlank()) &&
+                (search == null || search.isBlank())) {
+            return PdRepo.findAll(pageable);
+        } else if (mainCategory != null && !mainCategory.isBlank() &&
+                (search == null || search.isBlank())) {
+            return PdRepo.findByMainCategory(MainCategory.valueOf(mainCategory), pageable);
+        } else if (search != null && !search.isBlank()) {
+            return PdRepo.findByPnmContainingIgnoreCase(search, pageable);
+        }
+
+        return PdRepo.findAll(pageable);
+    }
+
+    private ProductDTO convertToDTO(Product product) {
+        return ProductDTO.builder()
                 .pid(product.getPid())
                 .pnm(product.getPnm())
                 .mainCategory(product.getMainCategory() != null ? product.getMainCategory().name() : null)
@@ -319,18 +323,20 @@ public class PdSvc {
                 .hit(product.getHit())
                 .soldout(product.getSoldout())
                 .image(product.getImage())
-                .adminStatus(product.getAdminStatus())
-                .userStatus(product.getUserStatus())
                 .build();
     }
 
-    private String saveImageFile(MultipartFile file) throws IOException {
+    public String saveImageFile(MultipartFile file) throws IOException {
         File uploadDir = new File(uploadDirectory);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
 
         String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new IllegalArgumentException("파일명이 없습니다.");
+        }
+
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String savedFilename = UUID.randomUUID().toString() + extension;
 
@@ -347,26 +353,5 @@ public class PdSvc {
         } catch (IOException e) {
             log.error("이미지 파일 삭제 실패: {}", e.getMessage());
         }
-    }
-
-    @Transactional(readOnly = true)
-    public Page<Product> getAllProductsPaging(int page, int size, String mainCategory,  String search) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("pid").descending());
-
-
-        if ((mainCategory == null || mainCategory.isBlank()) &&
-                (search == null || search.isBlank())) {
-
-            return PdRepo.findAll(pageable);
-        } else if (mainCategory != null && !mainCategory.isBlank() &&
-                (search == null || search.isBlank())) {
-
-            return PdRepo.findByMainCategory(MainCategory.valueOf(mainCategory), pageable);
-        } else if (search != null && !search.isBlank()) {
-
-            return PdRepo.findByPnmContainingIgnoreCase(search, pageable);
-        }
-
-        return PdRepo.findAll(pageable);
     }
 }
