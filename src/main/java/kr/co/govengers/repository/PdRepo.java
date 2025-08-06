@@ -33,10 +33,8 @@ public interface PdRepo extends JpaRepository<Product, Integer> {
             "(:category IS NULL OR p.mainCategory = :category)")
     List<Product> findByKeywordAndCategory(@Param("keyword") String keyword,
                                            @Param("category") MainCategory category);
-
     Page<Product> findByMainCategory(MainCategory mainCategory, Pageable pageable);
     Page<Product> findByPnmContainingIgnoreCase(String keyword, Pageable pageable);
-
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Product p SET p.hit = p.hit + 1 WHERE p.pid = :pid")

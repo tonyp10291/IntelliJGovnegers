@@ -8,10 +8,13 @@ import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import jakarta.servlet.MultipartConfigElement;
+import java.io.File;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -21,22 +24,33 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String normalizedPath = normalizeUploadPath(uploadPath);
+
         registry.addResourceHandler("/gogiImage/**")
-                .addResourceLocations("file:///" + uploadPath + "/");
+                .addResourceLocations("file:" + normalizedPath);
+
+        registry.addResourceHandler("/api/images/**")
+                .addResourceLocations("file:" + normalizedPath);
 
         registry.addResourceHandler("/api/imgs/**")
-                .addResourceLocations("file:///" + uploadPath + "/");
+                .addResourceLocations("file:" + normalizedPath);
 
         registry.addResourceHandler("/api/download/**")
-                .addResourceLocations("file:///" + uploadPath + "/");
+                .addResourceLocations("file:" + normalizedPath);
     }
 
+    private String normalizeUploadPath(String path) {
+        if (!path.endsWith(File.separator)) {
+            path += File.separator;
+        }
+        return path;
+    }
 
     @Bean
     public MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setMaxFileSize(DataSize.parse("10MB"));
-        factory.setMaxRequestSize(DataSize.parse("10MB"));
+        factory.setMaxFileSize(DataSize.ofMegabytes(10));
+        factory.setMaxRequestSize(DataSize.ofMegabytes(10));
         return factory.createMultipartConfig();
     }
 
@@ -54,5 +68,10 @@ public class WebConfig implements WebMvcConfigurer {
                 }
             }
         };
+    }
+
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
     }
 }

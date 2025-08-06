@@ -25,6 +25,11 @@ public class Review {
     private int rating;
     private String imgFilename;
 
+    @Column(columnDefinition = "TEXT")
+    private String response;
+
+    private LocalDateTime responseDate;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

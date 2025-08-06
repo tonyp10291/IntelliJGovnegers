@@ -2,12 +2,12 @@ package kr.co.govengers.service;
 
 import kr.co.govengers.entity.Inquiry;
 import kr.co.govengers.entity.User;
+import kr.co.govengers.entity.enums.InquiryCategory;
 import kr.co.govengers.repository.UQnARepo;
 import kr.co.govengers.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -20,13 +20,15 @@ public class UQnASvc {
     @Transactional(readOnly = true)
     public List<Inquiry> findInquiriesForUser(String category, String keyword, String userId) {
         if (category != null && !category.equals("전체") && keyword != null && !keyword.isBlank()) {
-            return uqnARepo.findByCategoryAndTitleContainingAndVisibilityForUser(category, keyword, userId);
+            InquiryCategory inquiryCategory = InquiryCategory.fromString(category);
+            return uqnARepo.findByCategoryAndTitleOrUserUidContainingAndVisibilityForUser(inquiryCategory, keyword, userId);
         }
         else if (category != null && !category.equals("전체")) {
-            return uqnARepo.findByCategoryAndVisibilityForUser(category, userId);
+            InquiryCategory inquiryCategory = InquiryCategory.fromString(category);
+            return uqnARepo.findByCategoryAndVisibilityForUser(inquiryCategory, userId);
         }
         else if (keyword != null && !keyword.isBlank()) {
-            return uqnARepo.findByTitleContainingAndVisibilityForUser(keyword, userId);
+            return uqnARepo.findByTitleOrUserUidContainingAndVisibilityForUser(keyword, userId);
         }
         else {
             return uqnARepo.findAllWithVisibilityForUser(userId);
@@ -42,9 +44,7 @@ public class UQnASvc {
     public Inquiry createInquiry(Inquiry inquiry, String userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
         inquiry.setUser(user);
-
         return uqnARepo.save(inquiry);
     }
 

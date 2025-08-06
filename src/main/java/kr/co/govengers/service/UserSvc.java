@@ -88,7 +88,7 @@ public class UserSvc {
 
         return userRepo.save(user);
     }
-//dds
+
     @Transactional
     public void changePassword(String uid, String currentPassword, String newPassword) {
         User user = userRepo.findById(uid)

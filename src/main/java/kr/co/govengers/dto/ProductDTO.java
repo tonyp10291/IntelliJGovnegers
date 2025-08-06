@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Data
 @Builder
-public class ProductDto {
+public class ProductDTO {
     private Integer pid;
     private String pnm;
     private String mainCategory;
