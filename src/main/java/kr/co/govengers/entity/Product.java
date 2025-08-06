@@ -1,7 +1,9 @@
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
+import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
+import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -48,5 +50,11 @@ public class Product {
         if (updated.getHit() != null) this.hit = updated.getHit();
         if (updated.getImage() != null) this.image = updated.getImage();
         if (updated.getSoldout() != null) this.soldout = updated.getSoldout();
+    }
+    public int calculatePoint(){
+        return (int) (this.price * 0.05);
+    }
+    public int shippingCost(){
+        return 3500;
     }
 }

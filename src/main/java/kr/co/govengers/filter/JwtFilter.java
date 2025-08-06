@@ -26,10 +26,27 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserRepo userRepo;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        return path.startsWith("/img/") ||
+                path.startsWith("/api/imgs/") ||
+                path.startsWith("/api/images/") ||
+                path.startsWith("/gogiImage/") ||
+                path.startsWith("/api/download/") ||
+                path.endsWith(".jpg") ||
+                path.endsWith(".jpeg") ||
+                path.endsWith(".png") ||
+                path.endsWith(".gif") ||
+                path.endsWith(".webp");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+
         if (path.equals("/api/join") || path.equals("/api/login")
                 || path.equals("/api/email/send-code") || path.equals("/api/email/verify-code")
                 || path.equals("/api/sms/send-code") || path.equals("/api/sms/verify-code")) {

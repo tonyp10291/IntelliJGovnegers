@@ -22,7 +22,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtAuthenticationFilter;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -37,34 +37,46 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/images/**").permitAll()
+                        .requestMatchers("/gogiImage/**").permitAll()
+                        .requestMatchers("/api/imgs/**").permitAll()
+                        .requestMatchers("/img/**").permitAll()
+                        .requestMatchers("/api/download/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
+
+                                .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers(
                                 "/api/login",
                                 "/api/join",
                                 "/api/email/**",
                                 "/api/sms/**",
                                 "/api/products/**",
+                                "/api/wishlist/guest",
                                 "/api/search/**",
-                                "/api/notice/**",
-                                "/api/review/**",
+                                "/api/notices/**",
+                                "/api/reviews/**",
                                 "/api/inquiry/**",
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
                                 "/api/verify-user-for-password-reset",
-                                "/api/reset-password",
-                                "/gogiImage/**",
-                                "/api/imgs/**",
-                                "/api/download/**"
+                                "/api/reset-password"
                         ).permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
 
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/wishlist/user").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

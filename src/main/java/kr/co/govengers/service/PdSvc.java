@@ -1,18 +1,18 @@
 package kr.co.govengers.service;
 
-import kr.co.govengers.dto.ProductDto;
+import kr.co.govengers.dto.ProductDTO;
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
+import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
+import kr.co.govengers.entity.enums.UserStatus;
 import kr.co.govengers.repository.PdRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,91 +33,109 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PdSvc {
 
-    private final PdRepo pdRepository;
+    private final PdRepo PdRepo;
 
     @Value("${custom.upload-path:src/main/resources/static/img}")
     private String uploadDirectory;
 
     @Transactional(readOnly = true)
     public List<Product> getProducts() {
-        return pdRepository.findAll();
+        return PdRepo.findAll();
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductDto> getProducts(int page, int size, String mainCategory, String search) {
+    public Page<ProductDTO> getProducts(int page, int size, String mainCategory, String search) {
         Pageable pageable = PageRequest.of(page, size);
 
-        List<Product> all = pdRepository.findAll();
-        List<ProductDto> filtered = all.stream()
+        List<Product> all = PdRepo.findAll();
+        List<ProductDTO> filtered = all.stream()
                 .filter(p -> mainCategory == null || mainCategory.isBlank() ||
                         (p.getMainCategory() != null && p.getMainCategory().name().equals(mainCategory)))
                 .filter(p -> search == null || search.isBlank() ||
                         (p.getPnm() != null && p.getPnm().toLowerCase().contains(search.toLowerCase())))
-                .map(this::convertToDto)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), filtered.size());
-        List<ProductDto> pageList = filtered.subList(start, end);
+        List<ProductDTO> pageList = filtered.subList(start, end);
 
         return new PageImpl<>(pageList, pageable, filtered.size());
     }
 
     @Transactional(readOnly = true)
     public Page<Product> getAllProducts(Pageable pageable) {
-        return pdRepository.findAll(pageable);
+        return PdRepo.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Product> getAvailableProducts(Pageable pageable) {
-        return pdRepository.findAll(pageable);
+        return PdRepo.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     public Optional<Product> getProductEntityById(Integer pid) {
-        return pdRepository.findById(pid);
+        return PdRepo.findById(pid);
     }
 
     @Transactional(readOnly = true)
-    public ProductDto getProductById(Integer pid) {
-        Product product = pdRepository.findById(pid)
+    public ProductDTO getProductById(Integer pid) {
+        Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
-        increaseHit(pid);
-        return convertToDto(product);
+        try {
+            increaseHitSafely(pid);
+        } catch (Exception e) {
+            log.warn("조회수 증가 실패 (상품 조회는 정상 진행): {}", e.getMessage());
+        }
+
+        return convertToDTO(product);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void increaseHitSafely(Integer pid) {
+        try {
+            Product product = PdRepo.findById(pid).orElse(null);
+            if (product != null) {
+                product.setHit(product.getHit() + 1);
+                PdRepo.save(product);
+            }
+        } catch (Exception e) {
+            log.warn("조회수 증가 실패: {}", e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
     public List<Product> getProductsByCategory(MainCategory category) {
-        return pdRepository.findByMainCategory(category);
+        return PdRepo.findByMainCategory(category);
     }
 
     @Transactional(readOnly = true)
     public List<Product> searchProducts(String keyword) {
-        return pdRepository.findByPnmContainingIgnoreCase(keyword);
+        return PdRepo.findByPnmContainingIgnoreCase(keyword);
     }
 
     @Transactional(readOnly = true)
     public List<Product> searchProductsWithCategory(String keyword, MainCategory category) {
-        return pdRepository.findByPnmContainingIgnoreCaseAndMainCategory(keyword, category);
+        return PdRepo.findByPnmContainingIgnoreCaseAndMainCategory(keyword, category);
     }
 
     @Transactional(readOnly = true)
     public List<Product> getPopularProducts() {
-        return pdRepository.findAllByOrderByHitDesc();
+        return PdRepo.findAllByOrderByHitDesc();
     }
 
     @Transactional(readOnly = true)
     public List<Product> getLatestProducts() {
-        return pdRepository.findAllByOrderByPidDesc();
+        return PdRepo.findAllByOrderByPidDesc();
     }
 
     @Transactional(readOnly = true)
     public List<Product> getProductsByPriceRange(int minPrice, int maxPrice) {
-        return pdRepository.findByPriceBetween(minPrice, maxPrice);
+        return PdRepo.findByPriceBetween(minPrice, maxPrice);
     }
 
-    public void registerProduct(ProductRegisterRequest req, MultipartFile imageFile) {
+    public Product registerProduct(ProductRegisterRequest req, MultipartFile imageFile) {
         String savedFilename = null;
 
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -144,26 +162,46 @@ public class PdSvc {
                 .expDate(expDate)
                 .hit(req.getHit() != null ? req.getHit() : 0)
                 .image(savedFilename)
-                .soldout(0) // 기본값 0 (판매중)
+                .soldout(req.getSoldout() != null ? req.getSoldout() : 0)
                 .build();
 
-        pdRepository.save(product);
+        return PdRepo.save(product);
     }
 
     @Transactional
     public Product updateProduct(Integer pid, Product updatedProduct) {
-        Product product = pdRepository.findById(pid)
+        Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
-        product.setPnm(updatedProduct.getPnm());
-        product.setMainCategory(updatedProduct.getMainCategory());
-        product.setPrice(updatedProduct.getPrice());
-        product.setPdesc(updatedProduct.getPdesc());
-        product.setOrigin(updatedProduct.getOrigin());
-        product.setExpDate(updatedProduct.getExpDate());
-        product.setHit(updatedProduct.getHit());
+        if (updatedProduct.getPnm() != null) {
+            product.setPnm(updatedProduct.getPnm());
+        }
+        if (updatedProduct.getMainCategory() != null) {
+            product.setMainCategory(updatedProduct.getMainCategory());
+        }
+        if (updatedProduct.getPrice() != null) {
+            product.setPrice(updatedProduct.getPrice());
+        }
+        if (updatedProduct.getPdesc() != null) {
+            product.setPdesc(updatedProduct.getPdesc());
+        }
+        if (updatedProduct.getOrigin() != null) {
+            product.setOrigin(updatedProduct.getOrigin());
+        }
+        if (updatedProduct.getExpDate() != null) {
+            product.setExpDate(updatedProduct.getExpDate());
+        }
+        if (updatedProduct.getHit() != null) {
+            product.setHit(updatedProduct.getHit());
+        }
+        if (updatedProduct.getSoldout() != null) {
+            product.setSoldout(updatedProduct.getSoldout());
+        }
+        if (updatedProduct.getImage() != null) {
+            product.setImage(updatedProduct.getImage());
+        }
 
-        return pdRepository.save(product);
+        return PdRepo.save(product);
     }
 
     public Product saveProduct(Product product) {
@@ -171,11 +209,11 @@ public class PdSvc {
             product.setHit(product.getHit() == null ? 0 : product.getHit());
             product.setSoldout(product.getSoldout() == null ? 0 : product.getSoldout());
         }
-        return pdRepository.save(product);
+        return PdRepo.save(product);
     }
 
     public void deleteProduct(Integer pid) {
-        Product product = pdRepository.findById(pid)
+        Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
         String imgFilename = product.getImage();
@@ -183,7 +221,7 @@ public class PdSvc {
             deleteImageFile(imgFilename);
         }
 
-        pdRepository.deleteById(pid);
+        PdRepo.deleteById(pid);
     }
 
     public String saveProductImage(Integer pid, MultipartFile file) throws IOException {
@@ -192,66 +230,89 @@ public class PdSvc {
         }
 
         String savedFilename = saveImageFile(file);
-        Product product = pdRepository.findById(pid)
+        Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
         product.setImage(savedFilename);
-        pdRepository.save(product);
+        PdRepo.save(product);
         return savedFilename;
     }
 
     public void toggleHit(Integer pid, Integer hit) {
-        Product product = pdRepository.findById(pid)
+        Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
         product.setHit(hit != null && hit == 1 ? 1 : 0);
-        pdRepository.save(product);
+        PdRepo.save(product);
     }
 
     public void toggleSoldout(Integer pid, Integer soldout) {
-        Product product = pdRepository.findById(pid)
+        Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
         product.setSoldout(soldout != null && soldout == 1 ? 1 : 0);
-        pdRepository.save(product);
+        PdRepo.save(product);
     }
 
+    @Transactional
     public void increaseHit(Integer pid) {
-        pdRepository.increaseHit(pid);
+        Product product = PdRepo.findById(pid).orElse(null);
+        if (product != null) {
+            product.setHit(product.getHit() + 1);
+            PdRepo.save(product);
+        }
     }
 
+    @Transactional
     public Optional<Product> updatePrice(Integer pid, int price) {
-        pdRepository.updatePrice(pid, price);
-        return pdRepository.findById(pid);
+        Product product = PdRepo.findById(pid).orElse(null);
+        if (product != null) {
+            product.setPrice(price);
+            PdRepo.save(product);
+            return Optional.of(product);
+        }
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)
     public List<Product> getProductsWithExpiringDate(int days) {
         LocalDate targetDate = LocalDate.now().plusDays(days);
-        return pdRepository.findProductsWithExpiringDate(targetDate);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Product> getOutOfStockProducts() {
-        return pdRepository.findBySoldout(1);
+        return PdRepo.findProductsWithExpiringDate(targetDate);
     }
 
     @Transactional(readOnly = true)
     public List<Product> getProductsByOrigin(String origin) {
-        return pdRepository.findByOrigin(origin);
+        return PdRepo.findByOrigin(origin);
     }
 
     @Transactional(readOnly = true)
     public long getTotalProductCount() {
-        return pdRepository.countAvailableProducts();
+        return PdRepo.countAvailableProducts();
     }
 
     @Transactional(readOnly = true)
     public long getProductCountByCategory(MainCategory category) {
-        return pdRepository.countByCategoryAndAvailable(category);
+        return PdRepo.countByCategoryAndAvailable(category);
     }
 
-    private ProductDto convertToDto(Product product) {
-        return ProductDto.builder()
+    @Transactional(readOnly = true)
+    public Page<Product> getAllProductsPaging(int page, int size, String mainCategory, String search) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("pid").descending());
+
+        if ((mainCategory == null || mainCategory.isBlank()) &&
+                (search == null || search.isBlank())) {
+            return PdRepo.findAll(pageable);
+        } else if (mainCategory != null && !mainCategory.isBlank() &&
+                (search == null || search.isBlank())) {
+            return PdRepo.findByMainCategory(MainCategory.valueOf(mainCategory), pageable);
+        } else if (search != null && !search.isBlank()) {
+            return PdRepo.findByPnmContainingIgnoreCase(search, pageable);
+        }
+
+        return PdRepo.findAll(pageable);
+    }
+
+    private ProductDTO convertToDTO(Product product) {
+        return ProductDTO.builder()
                 .pid(product.getPid())
                 .pnm(product.getPnm())
                 .mainCategory(product.getMainCategory() != null ? product.getMainCategory().name() : null)
@@ -265,13 +326,17 @@ public class PdSvc {
                 .build();
     }
 
-    private String saveImageFile(MultipartFile file) throws IOException {
+    public String saveImageFile(MultipartFile file) throws IOException {
         File uploadDir = new File(uploadDirectory);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
 
         String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new IllegalArgumentException("파일명이 없습니다.");
+        }
+
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String savedFilename = UUID.randomUUID().toString() + extension;
 

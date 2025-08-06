@@ -33,15 +33,14 @@ public interface PdRepo extends JpaRepository<Product, Integer> {
             "(:category IS NULL OR p.mainCategory = :category)")
     List<Product> findByKeywordAndCategory(@Param("keyword") String keyword,
                                            @Param("category") MainCategory category);
-
     Page<Product> findByMainCategory(MainCategory mainCategory, Pageable pageable);
     Page<Product> findByPnmContainingIgnoreCase(String keyword, Pageable pageable);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Product p SET p.hit = p.hit + 1 WHERE p.pid = :pid")
     void increaseHit(@Param("pid") Integer pid);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Product p SET p.price = :price WHERE p.pid = :pid")
     void updatePrice(@Param("pid") Integer pid, @Param("price") int price);
 
@@ -57,4 +56,8 @@ public interface PdRepo extends JpaRepository<Product, Integer> {
     List<Product> findAllByOrderByHitDesc();
     List<Product> findByPnmContainingIgnoreCaseAndMainCategory(String keyword, MainCategory category);
     List<Product> findAllByOrderByPidDesc();
+
+
+
+
 }

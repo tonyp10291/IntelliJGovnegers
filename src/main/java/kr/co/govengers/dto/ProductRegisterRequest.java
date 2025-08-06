@@ -2,14 +2,15 @@ package kr.co.govengers.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
+@ToString
 public class ProductRegisterRequest {
     private String pnm;
     private String mainCategory;
-    private String subCategory;
     private Integer price;
     private String pdesc;
     private String origin;

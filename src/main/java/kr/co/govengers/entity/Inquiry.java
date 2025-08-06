@@ -1,13 +1,15 @@
 package kr.co.govengers.entity;
 
-
 import jakarta.persistence.*;
 import kr.co.govengers.entity.enums.InquiryCategory;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "inquiry")
 public class Inquiry {
@@ -39,7 +41,10 @@ public class Inquiry {
     public boolean getIsPrivate() {
         return isPrivate;
     }
-
     public void setIsPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
+    public boolean isPrivate() {
+        return isPrivate;
     }
 }

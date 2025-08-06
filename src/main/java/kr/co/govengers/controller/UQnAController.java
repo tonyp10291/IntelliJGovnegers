@@ -43,6 +43,12 @@ public class UQnAController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            System.out.println("===== [문의 등록] 받은 Inquiry 값 =====");
+            System.out.println("제목: " + inquiry.getTitle());
+            System.out.println("내용: " + inquiry.getContent());
+            System.out.println("카테고리: " + inquiry.getCategory());
+            System.out.println("비밀글: " + inquiry.isPrivate());
+
             if (user == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
@@ -64,9 +70,6 @@ public class UQnAController {
         }
     }
 
-    /**
-     * 문의 수정 (PUT)
-     */
     @PutMapping("/{inquiryId}")
     public ResponseEntity<Map<String, Object>> updateInquiry(
             @PathVariable Long inquiryId,
@@ -97,9 +100,6 @@ public class UQnAController {
         }
     }
 
-    /**
-     * 문의 삭제 (DELETE)
-     */
     @DeleteMapping("/{inquiryId}")
     public ResponseEntity<Map<String, Object>> deleteInquiry(
             @PathVariable Long inquiryId,
