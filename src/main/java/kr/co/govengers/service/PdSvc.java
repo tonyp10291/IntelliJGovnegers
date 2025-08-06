@@ -163,8 +163,6 @@ public class PdSvc {
                 .hit(req.getHit() != null ? req.getHit() : 0)
                 .image(savedFilename)
                 .soldout(req.getSoldout() != null ? req.getSoldout() : 0)
-                .adminStatus(req.getAdminStatus() != null ? AdminStatus.valueOf(req.getAdminStatus()) : null)
-                .userStatus(req.getUserStatus() != null ? UserStatus.valueOf(req.getUserStatus()) : null)
                 .build();
 
         PdRepo.save(product);
@@ -198,12 +196,6 @@ public class PdSvc {
         }
         if (updatedProduct.getSoldout() != null) {
             product.setSoldout(updatedProduct.getSoldout());
-        }
-        if (updatedProduct.getAdminStatus() != null) {
-            product.setAdminStatus(updatedProduct.getAdminStatus());
-        }
-        if (updatedProduct.getUserStatus() != null) {
-            product.setUserStatus(updatedProduct.getUserStatus());
         }
         if (updatedProduct.getImage() != null) {
             product.setImage(updatedProduct.getImage());
@@ -319,8 +311,6 @@ public class PdSvc {
                 .hit(product.getHit())
                 .soldout(product.getSoldout())
                 .image(product.getImage())
-                .adminStatus(product.getAdminStatus())
-                .userStatus(product.getUserStatus())
                 .build();
     }
 

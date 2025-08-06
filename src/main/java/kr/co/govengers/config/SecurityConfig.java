@@ -56,7 +56,7 @@ public class SecurityConfig {
                                 "/api/email/**",
                                 "/api/sms/**",
                                 "/api/products/**",
-                                "/api/wishlist/guest",
+                                "/api/wishlist/guest/**",
                                 "/api/search/**",
                                 "/api/notices/**",
                                 "/api/reviews/**",
@@ -64,7 +64,8 @@ public class SecurityConfig {
                                 "/api/find-id",
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
-                                "/api/reset-password"
+                                "/api/reset-password",
+                                "/api/cart/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
@@ -72,7 +73,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
 
-                        .requestMatchers("/api/wishlist/user").hasRole("USER")
+                        .requestMatchers("/api/wishlist/user/**").hasRole("USER")
+                        .requestMatchers("/api/wishlist/migrate").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
