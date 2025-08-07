@@ -30,11 +30,10 @@ public class NoticeDTO {
         this.noticeId = notice.getNoticeId();
         this.title = notice.getTitle();
         this.content = notice.getContent();
-        this.isEvent = notice.isEvent();    // ⭐ Entity의 getter 호출
-        this.isFixed = notice.isFixed();    // ⭐ Entity의 getter 호출
+        this.isEvent = notice.isEvent();
+        this.isFixed = notice.isFixed();
         this.createdAt = notice.getCreatedAt();
 
-        // 디버깅용 로그 추가
         System.out.println("🔄 DTO 변환: " + notice.getNoticeId() +
                 " | isEvent=" + this.isEvent +
                 " | isFixed=" + this.isFixed);
@@ -50,7 +49,6 @@ public class NoticeDTO {
                 .build();
     }
 
-    // ⭐ boolean 필드의 is() 형태 getter (Lombok 보완)
     public boolean isEvent() {
         return this.isEvent;
     }
@@ -59,7 +57,6 @@ public class NoticeDTO {
         return this.isFixed;
     }
 
-    // ⭐ JSON 직렬화를 위한 get() 형태 getter 추가
     @JsonProperty("isEvent")
     public boolean getIsEvent() {
         return this.isEvent;
