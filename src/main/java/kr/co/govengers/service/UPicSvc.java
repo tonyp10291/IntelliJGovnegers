@@ -117,7 +117,6 @@ public class UPicSvc {
                 .stream()
                 .map(w -> w.getProduct().getPid())
                 .collect(Collectors.toList());
-
         List<Wishlist> newWishlists = new ArrayList<>();
         for (Wishlist guestWishlist : guestWishlists) {
             if (!existingUserProductPids.contains(guestWishlist.getProduct().getPid())) {

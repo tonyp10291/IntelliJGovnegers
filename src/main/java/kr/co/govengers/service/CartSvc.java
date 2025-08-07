@@ -35,11 +35,11 @@ public class CartSvc {
     public Page<CartItemDTO> getUserCart(String uid, Pageable pageable) {
         User user = userRepo.findById(uid)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return cartRepo.findByUser(user, pageable).map(CartItemDTO::from);
+        return cartRepo.findByUserWithProduct(user, pageable).map(CartItemDTO::from);
     }
 
     public Page<CartItemDTO> getGuestCart(String guestId, Pageable pageable) {
-        return cartRepo.findByGuestId(guestId, pageable).map(CartItemDTO::from);
+        return cartRepo.findByGuestIdWithProduct(guestId, pageable).map(CartItemDTO::from);
     }
 
     // `User user` -> `String uid`로 변경
@@ -156,13 +156,13 @@ public class CartSvc {
         cartRepo.deleteAllByGuestId(guestId);
     }
 
-    // `User user` -> `String uid`로 변경
+    // `wishlist` 로직과 동일하게 수정
     @Transactional
     public boolean migrateCart(String guestId, String uid) {
         List<Cart> guestCarts = cartRepo.findByGuestId(guestId);
 
         if (guestCarts.isEmpty()) {
-            return true;
+            return true; // 비회원 장바구니에 상품이 없으면 성공으로 처리
         }
 
         User user = userRepo.findById(uid)
@@ -173,7 +173,7 @@ public class CartSvc {
                 .map(c -> c.getProduct().getPid())
                 .collect(Collectors.toList());
 
-        List<Cart> newCarts = new ArrayList<>();
+        List<Cart> cartsToMigrate = new ArrayList<>();
         for (Cart guestCart : guestCarts) {
             if (!existingUserProductPids.contains(guestCart.getProduct().getPid())) {
                 Cart newCart = Cart.builder()
@@ -181,14 +181,12 @@ public class CartSvc {
                         .product(guestCart.getProduct())
                         .quantity(guestCart.getQuantity())
                         .build();
-                newCarts.add(newCart);
+                cartsToMigrate.add(newCart);
             }
         }
-
-        cartRepo.saveAll(newCarts);
+        cartRepo.saveAll(cartsToMigrate);
         cartRepo.deleteAll(guestCarts);
 
         return true;
     }
-
 }

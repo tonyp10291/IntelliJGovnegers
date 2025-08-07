@@ -21,7 +21,7 @@ public class Cart {
     @JoinColumn(name = "uid")
     private User user;
 
-    private String guestId; // 비회원 장바구니를 위한 필드 추가
+    private String guestId;
 
     @ManyToOne
     @JoinColumn(name = "pid")

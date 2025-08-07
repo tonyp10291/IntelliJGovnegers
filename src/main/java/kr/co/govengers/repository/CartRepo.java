@@ -16,11 +16,13 @@ import java.util.Optional;
 
 @Repository
 public interface CartRepo extends JpaRepository<Cart, Integer> {
-    // 회원 장바구니 목록 조회 (페이징)
-    Page<Cart> findByUser(User user, Pageable pageable);
+    // 회원 장바구니 목록 조회 (페이징) - JOIN FETCH 추가
+    @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.user = :user")
+    Page<Cart> findByUserWithProduct(@Param("user") User user, Pageable pageable);
 
-    // 비회원 장바구니 목록 조회 (페이징)
-    Page<Cart> findByGuestId(String guestId, Pageable pageable);
+    // 비회원 장바구니 목록 조회 (페이징) - JOIN FETCH 추가
+    @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.guestId = :guestId")
+    Page<Cart> findByGuestIdWithProduct(@Param("guestId") String guestId, Pageable pageable);
 
     // 마이그레이션을 위한 비회원 장바구니 전체 목록 조회
     List<Cart> findByGuestId(String guestId);

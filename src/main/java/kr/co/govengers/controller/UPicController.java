@@ -98,6 +98,7 @@ public class UPicController {
         if (guestId == null || guestId.isEmpty() || user == null) {
             return ResponseEntity.badRequest().build();
         }
+        System.out.println("통과@@@@@@@@@@@@@@@@@");
         boolean success = uPicSvc.migrateGuestWishlist(guestId, user);
         if (success) {
             return new ResponseEntity<>("Wishlist 비로그인 데이터 삭제 성공", HttpStatus.OK);
