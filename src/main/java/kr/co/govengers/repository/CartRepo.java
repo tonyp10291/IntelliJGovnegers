@@ -16,42 +16,39 @@ import java.util.Optional;
 
 @Repository
 public interface CartRepo extends JpaRepository<Cart, Integer> {
-    // 회원 장바구니 목록 조회 (페이징) - JOIN FETCH 추가
+
+    long countByProduct_Pid(Integer pid);
+
+    @Modifying
+    @Transactional
+    void deleteByProduct_Pid(Integer pid);
+
     @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.user = :user")
     Page<Cart> findByUserWithProduct(@Param("user") User user, Pageable pageable);
 
-    // 비회원 장바구니 목록 조회 (페이징) - JOIN FETCH 추가
     @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.guestId = :guestId")
     Page<Cart> findByGuestIdWithProduct(@Param("guestId") String guestId, Pageable pageable);
 
-    // 마이그레이션을 위한 비회원 장바구니 전체 목록 조회
     List<Cart> findByGuestId(String guestId);
 
-    // 마이그레이션을 위한 회원 장바구니 전체 목록 조회
     List<Cart> findByUser(User user);
 
-    // 회원 장바구니 상품 존재 여부 확인
     Optional<Cart> findByUserAndProduct_Pid(User user, Integer pid);
 
-    // 비회원 장바구니 상품 존재 여부 확인
     Optional<Cart> findByGuestIdAndProduct_Pid(String guestId, Integer pid);
 
-    // 회원 장바구니 전체 삭제
     @Modifying
     @Transactional
     void deleteAllByUser(User user);
 
-    // 비회원 장바구니 전체 삭제
     @Modifying
     @Transactional
     void deleteAllByGuestId(String guestId);
 
-    // 특정 장바구니 항목 삭제 (회원/비회원 공용)
     @Modifying
     @Transactional
     void deleteByCartId(Integer cartId);
 
-    // 특정 장바구니 항목 목록 삭제 (회원/비회원 공용)
     @Modifying
     @Transactional
     @Query("DELETE FROM Cart c WHERE c.cartId IN :cartIds")

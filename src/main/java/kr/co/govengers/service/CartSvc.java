@@ -31,7 +31,6 @@ public class CartSvc {
         this.pdRepo = pdRepo;
     }
 
-    // `User user` -> `String uid`로 변경
     public Page<CartItemDTO> getUserCart(String uid, Pageable pageable) {
         User user = userRepo.findById(uid)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -42,7 +41,6 @@ public class CartSvc {
         return cartRepo.findByGuestIdWithProduct(guestId, pageable).map(CartItemDTO::from);
     }
 
-    // `User user` -> `String uid`로 변경
     @Transactional
     public void addCartItem(String uid, Integer pid, Integer quantity) {
         User user = userRepo.findById(uid)
@@ -93,7 +91,6 @@ public class CartSvc {
         cart.setQuantity(quantity);
     }
 
-    // `User user` -> `String uid`로 변경하고, 권한 검증 로직에 uid 사용
     @Transactional
     public void deleteCartItem(Integer cartId, String uid) {
         Cart cart = cartRepo.findById(cartId)
@@ -116,7 +113,6 @@ public class CartSvc {
         cartRepo.deleteById(cartId);
     }
 
-    // `User user` -> `String uid`로 변경하고, 권한 검증 로직에 uid 사용
     @Transactional
     public void deleteCartItems(List<Integer> cartIds, String uid) {
         List<Cart> cartsToDelete = cartRepo.findAllById(cartIds);
@@ -143,7 +139,6 @@ public class CartSvc {
         cartRepo.deleteAllById(cartIds);
     }
 
-    // `User user` -> `String uid`로 변경
     @Transactional
     public void clearUserCart(String uid) {
         User user = userRepo.findById(uid)
@@ -156,13 +151,12 @@ public class CartSvc {
         cartRepo.deleteAllByGuestId(guestId);
     }
 
-    // `wishlist` 로직과 동일하게 수정
     @Transactional
     public boolean migrateCart(String guestId, String uid) {
         List<Cart> guestCarts = cartRepo.findByGuestId(guestId);
 
         if (guestCarts.isEmpty()) {
-            return true; // 비회원 장바구니에 상품이 없으면 성공으로 처리
+            return true;
         }
 
         User user = userRepo.findById(uid)

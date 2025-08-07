@@ -23,4 +23,3 @@ public class ProductDTO {
     private AdminStatus adminStatus;
     private UserStatus userStatus;
 }
-
