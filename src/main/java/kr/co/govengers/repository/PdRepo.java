@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PdRepo extends JpaRepository<Product, Integer> {
@@ -21,6 +22,7 @@ public interface PdRepo extends JpaRepository<Product, Integer> {
     List<Product> findByPriceBetween(int minPrice, int maxPrice);
     List<Product> findByOrigin(String origin);
     List<Product> findBySoldout(int soldout);
+    Optional<Product> findByPid(Integer pid);
 
     @Query("SELECT p FROM Product p ORDER BY p.hit DESC")
     List<Product> findPopularProducts();

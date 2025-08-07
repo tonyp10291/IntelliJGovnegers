@@ -37,26 +37,24 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/img/**", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/api/images/**").permitAll()
-                        .requestMatchers("/gogiImage/**").permitAll()
                         .requestMatchers("/api/imgs/**").permitAll()
-                        .requestMatchers("/img/**").permitAll()
+                        .requestMatchers("/gogiImage/**").permitAll()
                         .requestMatchers("/api/download/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
-
-                                .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers(
                                 "/api/login",
                                 "/api/join",
                                 "/api/email/**",
                                 "/api/sms/**",
                                 "/api/products/**",
-                                "/api/wishlist/guest",
+                                "/api/wishlist/guest/**",
                                 "/api/search/**",
                                 "/api/notices/**",
                                 "/api/reviews/**",
@@ -65,15 +63,21 @@ public class SecurityConfig {
                                 "/api/find-id-by-email",
                                 "/api/request-password-reset",
                                 "/api/verify-user-for-password-reset",
-                                "/api/reset-password"
+                                "/api/reset-password",
+                                "/api/cart/**"
                         ).permitAll()
-
+                        .requestMatchers(HttpMethod.POST, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/payment/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
-
-                        .requestMatchers("/api/wishlist/user").hasRole("USER")
+                        .requestMatchers("/api/wishlist/user/**").hasRole("USER")
+                        .requestMatchers("/api/wishlist/migrate").hasRole("USER")
+                        .requestMatchers("/api/cart/user/**").hasRole("USER")
+                        .requestMatchers("/api/cart/migrate").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -89,7 +93,9 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
                 "http://localhost:80",
-                "http://127.0.0.1:80"
+                "http://127.0.0.1:80",
+                "https://service.iamport.kr",
+                "https://api.iamport.kr"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
