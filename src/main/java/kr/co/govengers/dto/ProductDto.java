@@ -13,7 +13,6 @@ public class ProductDTO {
     private Integer pid;
     private String pnm;
     private String mainCategory;
-    private String subCategory;
     private Integer price;
     private String pdesc;
     private String origin;
@@ -24,4 +23,3 @@ public class ProductDTO {
     private AdminStatus adminStatus;
     private UserStatus userStatus;
 }
-
