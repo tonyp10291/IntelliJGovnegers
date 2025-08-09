@@ -3,14 +3,13 @@ package kr.co.govengers.service;
 import kr.co.govengers.dto.ProductDTO;
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
+import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
-import kr.co.govengers.repository.CartRepo;
-import kr.co.govengers.repository.MRvRepo;
+import kr.co.govengers.entity.enums.UserStatus;
 import kr.co.govengers.repository.PdRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -35,8 +34,6 @@ import java.util.stream.Collectors;
 public class PdSvc {
 
     private final PdRepo PdRepo;
-    private final CartRepo cartRepo;
-    private final MRvRepo mRvRepo;
 
     @Value("${custom.upload-path:src/main/resources/static/img}")
     private String uploadDirectory;
@@ -215,56 +212,16 @@ public class PdSvc {
         return PdRepo.save(product);
     }
 
-    @Transactional
     public void deleteProduct(Integer pid) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
-        try {
-            log.info("상품 삭제 시작: pid={}", pid);
-
-            // 1. 주문 항목 확인 (주문 이력 보존을 위해 삭제하지 않고 체크만)
-//            long orderItemCount = orderItemRepository.countByProduct_Pid(pid);
-//            if (orderItemCount > 0) {
-//                log.warn("주문 내역이 있는 상품은 삭제할 수 없습니다: pid={}, orderItemCount={}", pid, orderItemCount);
-//                throw new RuntimeException("이 상품은 주문 내역에 포함되어 있어 삭제할 수 없습니다. 대신 품절 처리를 권장합니다.");
-//            }
-
-            // 2. 장바구니 항목 삭제
-            long cartCount = cartRepo.countByProduct_Pid(pid);
-            if (cartCount > 0) {
-                log.info("장바구니 항목 삭제: pid={}, count={}", pid, cartCount);
-                cartRepo.deleteByProduct_Pid(pid);
-            }
-
-            // 3. 리뷰 삭제
-            long reviewCount = mRvRepo.countByProduct_Pid(pid);
-            if (reviewCount > 0) {
-                log.info("리뷰 삭제: pid={}, count={}", pid, reviewCount);
-                mRvRepo.deleteByProduct_Pid(pid);
-            }
-
-            // 4. 이미지 파일 삭제
-            String imgFilename = product.getImage();
-            if (imgFilename != null && !imgFilename.isEmpty()) {
-                deleteImageFile(imgFilename);
-                log.info("이미지 파일 삭제: {}", imgFilename);
-            }
-
-            // 5. 마지막으로 상품 삭제
-            PdRepo.deleteById(pid);
-            log.info("상품 삭제 완료: pid={}", pid);
-
-        } catch (DataIntegrityViolationException e) {
-            log.error("외래 키 제약 조건 오류: pid={}, error={}", pid, e.getMessage());
-            throw new RuntimeException("상품 삭제 실패: 다른 데이터에서 참조되고 있어 삭제할 수 없습니다.");
-        } catch (RuntimeException e) {
-            // 이미 처리된 런타임 예외는 그대로 재발생
-            throw e;
-        } catch (Exception e) {
-            log.error("상품 삭제 중 예상치 못한 오류 발생: pid={}, error={}", pid, e.getMessage(), e);
-            throw new RuntimeException("상품 삭제 중 오류가 발생했습니다: " + e.getMessage());
+        String imgFilename = product.getImage();
+        if (imgFilename != null && !imgFilename.isEmpty()) {
+            deleteImageFile(imgFilename);
         }
+
+        PdRepo.deleteById(pid);
     }
 
     public String saveProductImage(Integer pid, MultipartFile file) throws IOException {

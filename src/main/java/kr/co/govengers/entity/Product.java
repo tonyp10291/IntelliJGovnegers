@@ -22,6 +22,7 @@ public class Product {
     @Column(nullable = false)
     private String pnm;
 
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 

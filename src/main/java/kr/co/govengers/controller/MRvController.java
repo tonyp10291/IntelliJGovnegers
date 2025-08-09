@@ -20,9 +20,6 @@ public class MRvController {
 
     private final MRvSvc mRvSvc;
 
-    /**
-     * 리뷰 목록 조회 (페이징, 검색)
-     */
     @GetMapping("/list")
     public ResponseEntity<?> getReviewList(
             @RequestParam(defaultValue = "0") int page,
@@ -46,9 +43,6 @@ public class MRvController {
         }
     }
 
-    /**
-     * 리뷰 상세 조회
-     */
     @GetMapping("/{reviewId}")
     public ResponseEntity<?> getReview(@PathVariable Long reviewId) {
 
@@ -65,9 +59,6 @@ public class MRvController {
         }
     }
 
-    /**
-     * 리뷰 삭제
-     */
     @DeleteMapping("/delete/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
 
@@ -84,9 +75,6 @@ public class MRvController {
         }
     }
 
-    /**
-     * 리뷰 답변 저장/수정
-     */
     @PostMapping("/response/{reviewId}")
     public ResponseEntity<?> saveResponse(
             @PathVariable Long reviewId,
@@ -107,9 +95,6 @@ public class MRvController {
         }
     }
 
-    /**
-     * 리뷰 답변 삭제
-     */
     @DeleteMapping("/response/{reviewId}")
     public ResponseEntity<?> deleteResponse(@PathVariable Long reviewId) {
 
@@ -126,9 +111,6 @@ public class MRvController {
         }
     }
 
-    /**
-     * 리뷰 통계 조회 (대시보드용)
-     */
     @GetMapping("/stats")
     public ResponseEntity<?> getReviewStats() {
 

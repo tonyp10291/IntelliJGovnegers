@@ -46,14 +46,6 @@ public class WebConfig implements WebMvcConfigurer {
         return path;
     }
 
-//    @Bean
-//    public MultipartConfigElement multipartConfigElement() {
-//        MultipartConfigFactory factory = new MultipartConfigFactory();
-//        factory.setMaxFileSize(DataSize.ofMegabytes(10));
-//        factory.setMaxRequestSize(DataSize.ofMegabytes(10));
-//        return factory.createMultipartConfig();
-//    }
-
     @Bean
     public TomcatServletWebServerFactory containerFactory() {
         return new TomcatServletWebServerFactory() {
@@ -70,8 +62,8 @@ public class WebConfig implements WebMvcConfigurer {
         };
     }
 
-//    @Bean
-//    public MultipartResolver multipartResolver() {
-//        return new StandardServletMultipartResolver();
-//    }
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
+    }
 }

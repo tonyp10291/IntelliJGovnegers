@@ -25,7 +25,6 @@ public class UPicController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam String guestId
     ) {
-        //guestId 없을시
         if (guestId == null || guestId.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }

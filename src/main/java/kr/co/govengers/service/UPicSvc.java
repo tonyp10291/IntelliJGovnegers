@@ -117,9 +117,7 @@ public class UPicSvc {
                 .stream()
                 .map(w -> w.getProduct().getPid())
                 .collect(Collectors.toList());
-        System.out.println("11111");
         List<Wishlist> newWishlists = new ArrayList<>();
-        System.out.println("222222");
         for (Wishlist guestWishlist : guestWishlists) {
             if (!existingUserProductPids.contains(guestWishlist.getProduct().getPid())) {
                 Wishlist newWishlist = Wishlist.builder()
@@ -130,7 +128,6 @@ public class UPicSvc {
                 newWishlists.add(newWishlist);
             }
         }
-        System.out.println("33333333333");
         uPicRepo.saveAll(newWishlists);
         uPicRepo.deleteAll(guestWishlists);
 
@@ -175,7 +172,7 @@ public class UPicSvc {
         return false;
     }
 
-    @Scheduled(cron = "0 5 0 * * ?") //매일 새벽 0시 5분에 메서드 실행
+    @Scheduled(cron = "0 5 0 * * ?")
     public void deleteExpiredWishlists() {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
         uPicRepo.deleteByAddedAtBefore(sevenDaysAgo);
