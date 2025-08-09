@@ -19,13 +19,21 @@ public class UQnAController {
 
     private final UQnASvc uqnASvc;
 
+    // (1) 기존 전체조회 API - 문의목록 페이지는 기존대로 사용
     @GetMapping
     public ResponseEntity<List<Inquiry>> getInquiries(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String uid, // ★추가
             @AuthenticationPrincipal User user
     ) {
         try {
+            if (uid != null && !uid.isBlank()) {
+                // uid 파라미터가 있을 때는 내 문의만 반환
+                List<Inquiry> inquiries = uqnASvc.findInquiriesByUid(uid, category, keyword);
+                return ResponseEntity.ok(inquiries);
+            }
+            // 기존 로직: 전체 + (공개/비공개 필터)
             String userId = user != null ? user.getUid() : null;
             List<Inquiry> inquiries = uqnASvc.findInquiriesForUser(category, keyword, userId);
             return ResponseEntity.ok(inquiries);
@@ -70,6 +78,7 @@ public class UQnAController {
         }
     }
 
+    // ... update/delete 등은 기존 코드 그대로
     @PutMapping("/{inquiryId}")
     public ResponseEntity<Map<String, Object>> updateInquiry(
             @PathVariable Long inquiryId,
@@ -77,20 +86,16 @@ public class UQnAController {
             @AuthenticationPrincipal User user
     ) {
         Map<String, Object> response = new HashMap<>();
-
         try {
             if (user == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.status(401).body(response);
             }
-
             Inquiry updatedInquiry = uqnASvc.updateInquiry(inquiryId, inquiry, user.getUid());
-
             response.put("success", true);
             response.put("message", "수정되었습니다.");
             response.put("data", updatedInquiry);
-
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -106,19 +111,15 @@ public class UQnAController {
             @AuthenticationPrincipal User user
     ) {
         Map<String, Object> response = new HashMap<>();
-
         try {
             if (user == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.status(401).body(response);
             }
-
             uqnASvc.deleteInquiry(inquiryId, user.getUid());
-
             response.put("success", true);
             response.put("message", "삭제되었습니다.");
-
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();

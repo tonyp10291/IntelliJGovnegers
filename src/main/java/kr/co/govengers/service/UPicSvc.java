@@ -144,6 +144,7 @@ public class UPicSvc {
             dto.setPid(product.getPid());
             dto.setImage(product.getImage());
             dto.setPnm(product.getPnm());
+            dto.setPrice(product.getPrice());
             dto.setPoint(product.calculatePoint());
             dto.setShippingCost(product.shippingCost());
             dto.setTotalPrice(

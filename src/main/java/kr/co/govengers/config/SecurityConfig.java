@@ -55,7 +55,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/cart/migrate").hasRole("USER")
 
                         .requestMatchers("/api/admin/**").authenticated()
-
                         .requestMatchers(
                                 "/api/login",
                                 "/api/join",
@@ -74,6 +73,11 @@ public class SecurityConfig {
                                 "/api/reset-password",
                                 "/api/cart/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/payment/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/payment/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
@@ -93,7 +97,9 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
                 "http://localhost:80",
-                "http://127.0.0.1:80"
+                "http://127.0.0.1:80",
+                "https://service.iamport.kr",
+                "https://api.iamport.kr"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
