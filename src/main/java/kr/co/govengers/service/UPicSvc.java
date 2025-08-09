@@ -144,7 +144,6 @@ public class UPicSvc {
             dto.setPid(product.getPid());
             dto.setImage(product.getImage());
             dto.setPnm(product.getPnm());
-            dto.setPrice(product.getPrice());
             dto.setPoint(product.calculatePoint());
             dto.setShippingCost(product.shippingCost());
             dto.setTotalPrice(
@@ -172,7 +171,7 @@ public class UPicSvc {
         return false;
     }
 
-    @Scheduled(cron = "0 5 0 * * ?") //매일 새벽 0시 5분에 메서드 실행
+    @Scheduled(cron = "0 5 0 * * ?") //매일 새벽 0시 5분에 메서드 실행/비활성화가 정상임
     public void deleteExpiredWishlists() {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
         uPicRepo.deleteByAddedAtBefore(sevenDaysAgo);

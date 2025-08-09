@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,4 +54,6 @@ public interface CartRepo extends JpaRepository<Cart, Integer> {
     @Transactional
     @Query("DELETE FROM Cart c WHERE c.cartId IN :cartIds")
     void deleteAllByCartIdIn(@Param("cartIds") List<Integer> cartIds);
+
+    void deleteByAddedAtBefore(LocalDateTime beforeDate);
 }

@@ -7,6 +7,7 @@ import kr.co.govengers.entity.enums.MainCategory;
 import kr.co.govengers.repository.CartRepo;
 import kr.co.govengers.repository.MRvRepo;
 import kr.co.govengers.repository.PdRepo;
+import kr.co.govengers.repository.UPicRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class PdSvc {
     private final PdRepo PdRepo;
     private final CartRepo cartRepo;
     private final MRvRepo mRvRepo;
+    private final UPicRepo uPicRepo;
 
     @Value("${custom.upload-path:src/main/resources/static/img}")
     private String uploadDirectory;
@@ -100,7 +102,7 @@ public class PdSvc {
         try {
             Product product = PdRepo.findById(pid).orElse(null);
             if (product != null) {
-                product.setHit(product.getHit() + 1);
+                product.setHit(product.getHit());
                 PdRepo.save(product);
             }
         } catch (Exception e) {
@@ -243,15 +245,20 @@ public class PdSvc {
                 log.info("리뷰 삭제: pid={}, count={}", pid, reviewCount);
                 mRvRepo.deleteByProduct_Pid(pid);
             }
-
-            // 4. 이미지 파일 삭제
+            // 4. 찜목록 삭제
+            long wishlistCount = uPicRepo.countByProduct_Pid(pid);
+            if (wishlistCount > 0) {
+                log.info("찜목록 삭제: pid={}, count={}", pid, wishlistCount);
+                uPicRepo.deleteByProduct_Pid(pid);
+            }
+            // 5. 이미지 파일 삭제
             String imgFilename = product.getImage();
             if (imgFilename != null && !imgFilename.isEmpty()) {
                 deleteImageFile(imgFilename);
                 log.info("이미지 파일 삭제: {}", imgFilename);
             }
 
-            // 5. 마지막으로 상품 삭제
+            // 6. 상품 삭제
             PdRepo.deleteById(pid);
             log.info("상품 삭제 완료: pid={}", pid);
 
@@ -300,7 +307,7 @@ public class PdSvc {
     public void increaseHit(Integer pid) {
         Product product = PdRepo.findById(pid).orElse(null);
         if (product != null) {
-            product.setHit(product.getHit() + 1);
+            product.setHit(product.getHit());
             PdRepo.save(product);
         }
     }

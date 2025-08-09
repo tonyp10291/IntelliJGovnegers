@@ -49,6 +49,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
 
+                        .requestMatchers("/api/wishlist/user/**").hasRole("USER")
+                        .requestMatchers("/api/wishlist/migrate").hasRole("USER")
+                        .requestMatchers("/api/cart/user/**").hasRole("USER")
+                        .requestMatchers("/api/cart/migrate").hasRole("USER")
+
                         .requestMatchers("/api/admin/**").authenticated()
 
                         .requestMatchers(
@@ -72,11 +77,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
-
-                        .requestMatchers("/api/wishlist/user/**").hasRole("USER")
-                        .requestMatchers("/api/wishlist/migrate").hasRole("USER")
-                        .requestMatchers("/api/cart/user/**").hasRole("USER")
-                        .requestMatchers("/api/cart/migrate").hasRole("USER")
 
                         .anyRequest().authenticated()
                 )

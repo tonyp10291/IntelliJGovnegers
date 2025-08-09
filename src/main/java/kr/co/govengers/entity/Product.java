@@ -6,6 +6,8 @@ import kr.co.govengers.entity.enums.MainCategory;
 import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,6 +24,7 @@ public class Product {
     @Column(nullable = false)
     private String pnm;
 
+    @Column(length = 20)
     @Enumerated(EnumType.STRING)
     private MainCategory mainCategory;
 

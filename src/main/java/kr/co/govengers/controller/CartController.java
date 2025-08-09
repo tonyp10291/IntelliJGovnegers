@@ -31,7 +31,7 @@ public class CartController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, 5);
         Page<CartItemDTO> cartItems = cartSvc.getUserCart(user.getUid(), pageable);
         return ResponseEntity.ok(cartItems);
     }
@@ -41,7 +41,7 @@ public class CartController {
     public ResponseEntity<Page<CartItemDTO>> getGuestCart(
             @RequestParam String guestId,
             @RequestParam(defaultValue = "0") int page) {
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, 5);
         Page<CartItemDTO> cartItems = cartSvc.getGuestCart(guestId, pageable);
         return ResponseEntity.ok(cartItems);
     }

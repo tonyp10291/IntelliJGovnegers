@@ -9,9 +9,11 @@ import kr.co.govengers.repository.PdRepo;
 import kr.co.govengers.repository.UserRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -182,5 +184,12 @@ public class CartSvc {
         cartRepo.deleteAll(guestCarts);
 
         return true;
+    }
+
+    @Scheduled(cron = "0 5 0 * * ?") //매일 새벽 0시 5분에 메서드 실행/비활성화가 정상임
+    public void deleteExpiredCart() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        cartRepo.deleteByAddedAtBefore(sevenDaysAgo);
+        System.out.println("7일이 지난 장바구니 항목이 삭제되었습니다.");
     }
 }
