@@ -39,8 +39,22 @@ public class CartSvc {
         return cartRepo.findByUserWithProduct(user, pageable).map(CartItemDTO::from);
     }
 
+    public List<CartItemDTO> getAllUserCart(String uid) {
+        User user = userRepo.findById(uid)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return cartRepo.findByUserWithProduct(user).stream()
+                .map(CartItemDTO::from)
+                .collect(Collectors.toList());
+    }
+
     public Page<CartItemDTO> getGuestCart(String guestId, Pageable pageable) {
         return cartRepo.findByGuestIdWithProduct(guestId, pageable).map(CartItemDTO::from);
+    }
+
+    public List<CartItemDTO> getAllGuestCart(String guestId) {
+        return cartRepo.findByGuestIdWithProduct(guestId).stream()
+                .map(CartItemDTO::from)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -156,19 +170,15 @@ public class CartSvc {
     @Transactional
     public boolean migrateCart(String guestId, String uid) {
         List<Cart> guestCarts = cartRepo.findByGuestId(guestId);
-
         if (guestCarts.isEmpty()) {
             return true;
         }
-
         User user = userRepo.findById(uid)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
         List<Integer> existingUserProductPids = cartRepo.findByUser(user)
                 .stream()
                 .map(c -> c.getProduct().getPid())
                 .collect(Collectors.toList());
-
         List<Cart> cartsToMigrate = new ArrayList<>();
         for (Cart guestCart : guestCarts) {
             if (!existingUserProductPids.contains(guestCart.getProduct().getPid())) {

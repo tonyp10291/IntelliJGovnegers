@@ -25,7 +25,7 @@ public class OrderSvc {
 
         // 금액/배송
         Integer finalPayment = toInt(payment.get("amount"));
-        Integer shippingCost = payment.get("shippingCost") != null ? toInt(payment.get("shippingCost")) : 3000;
+        Integer shippingCost = payment.get("shippingCost") != null ? toInt(payment.get("shippingCost")) : 3500;
         Integer productTotalPrice = (finalPayment != null && shippingCost != null)
                 ? finalPayment - shippingCost
                 : toInt(payment.get("productPrice"));

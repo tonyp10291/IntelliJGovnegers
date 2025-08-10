@@ -373,6 +373,7 @@ public class PdSvc {
                 .hit(product.getHit())
                 .soldout(product.getSoldout())
                 .image(product.getImage())
+                .shippingCost(product.shippingCost())
                 .build();
     }
 

@@ -58,9 +58,9 @@ public class UPicController {
 
         boolean success = uPicSvc.addUserWishlist(user.getUid(), pid);
         if (success) {
-            return new ResponseEntity<>("로그인 위시리스트 추가 성공", HttpStatus.OK);
+            return new ResponseEntity<>("wishlist 추가 성공", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("로그인 위시리스트 추가 실패", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("wishlist 추가 실패", HttpStatus.BAD_REQUEST);
         }
     }
 

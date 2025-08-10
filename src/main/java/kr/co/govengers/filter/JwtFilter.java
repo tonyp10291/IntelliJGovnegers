@@ -58,8 +58,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 || path.equals("/api/sms/send-code") || path.equals("/api/sms/verify-code")
                 || path.startsWith("/api/payment/")
                 || path.startsWith("/api/products/")
-                || path.startsWith("/api/wishlist/guest/")
-                || path.startsWith("/api/cart/")
                 || path.startsWith("/api/search/")
                 || path.startsWith("/api/notices/")
                 || path.startsWith("/api/reviews/")

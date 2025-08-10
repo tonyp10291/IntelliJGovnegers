@@ -35,12 +35,27 @@ public class CartController {
         return ResponseEntity.ok(cartItems);
     }
 
+    @GetMapping("/user/all")
+    public ResponseEntity<List<CartItemDTO>> getAllUserCart(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<CartItemDTO> cartItems = cartSvc.getAllUserCart(user.getUid());
+        return ResponseEntity.ok(cartItems);
+    }
+
     @GetMapping("/guest")
     public ResponseEntity<Page<CartItemDTO>> getGuestCart(
             @RequestParam String guestId,
             @RequestParam(defaultValue = "0") int page) {
         Pageable pageable = PageRequest.of(page, 5);
         Page<CartItemDTO> cartItems = cartSvc.getGuestCart(guestId, pageable);
+        return ResponseEntity.ok(cartItems);
+    }
+
+    @GetMapping("/guest/all")
+    public ResponseEntity<List<CartItemDTO>> getAllGuestCart(@RequestParam String guestId) {
+        List<CartItemDTO> cartItems = cartSvc.getAllGuestCart(guestId);
         return ResponseEntity.ok(cartItems);
     }
 
