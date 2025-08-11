@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,12 @@ public interface CartRepo extends JpaRepository<Cart, Integer> {
 
     @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.guestId = :guestId")
     Page<Cart> findByGuestIdWithProduct(@Param("guestId") String guestId, Pageable pageable);
+
+    @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.user = :user")
+    List<Cart> findByUserWithProduct(@Param("user") User user);
+
+    @Query("SELECT c FROM Cart c JOIN FETCH c.product WHERE c.guestId = :guestId")
+    List<Cart> findByGuestIdWithProduct(@Param("guestId") String guestId);
 
     List<Cart> findByGuestId(String guestId);
 
@@ -53,4 +60,6 @@ public interface CartRepo extends JpaRepository<Cart, Integer> {
     @Transactional
     @Query("DELETE FROM Cart c WHERE c.cartId IN :cartIds")
     void deleteAllByCartIdIn(@Param("cartIds") List<Integer> cartIds);
+
+    void deleteByAddedAtBefore(LocalDateTime beforeDate);
 }

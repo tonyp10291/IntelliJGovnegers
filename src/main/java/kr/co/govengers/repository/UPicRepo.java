@@ -4,7 +4,9 @@ import kr.co.govengers.entity.Wishlist;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +14,12 @@ import java.util.Optional;
 
 
 public interface UPicRepo extends JpaRepository<Wishlist, Long> {
+
+    long countByProduct_Pid(Integer pid);
+
+    @Modifying
+    @Transactional
+    void deleteByProduct_Pid(Integer pid);
 
     @Query("SELECT w FROM Wishlist w JOIN FETCH w.product WHERE w.guestId = :guestId")
     Page<Wishlist> findByGuestIdWithProduct(String guestId, Pageable pageable);

@@ -22,4 +22,6 @@ public class ProductDTO {
     private String image;
     private AdminStatus adminStatus;
     private UserStatus userStatus;
+    private Integer shippingCost;
+
 }

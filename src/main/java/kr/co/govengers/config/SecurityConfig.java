@@ -42,13 +42,22 @@ public class SecurityConfig {
                         .requestMatchers("/api/imgs/**").permitAll()
                         .requestMatchers("/gogiImage/**").permitAll()
                         .requestMatchers("/api/download/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                            "/api/wishlist/user/**",
+                            "/api/wishlist/migrate",
+                            "/api/cart/user/**",
+                            "/api/cart/migrate"
+                        ).hasRole("USER")
+
                         .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers(
+                                "/api/me",
                                 "/api/login",
                                 "/api/join",
                                 "/api/email/**",
@@ -66,6 +75,7 @@ public class SecurityConfig {
                                 "/api/reset-password",
                                 "/api/cart/**"
                         ).permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/api/payment/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/payment/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/payment/**").permitAll()
@@ -74,10 +84,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
-                        .requestMatchers("/api/wishlist/user/**").hasRole("USER")
-                        .requestMatchers("/api/wishlist/migrate").hasRole("USER")
-                        .requestMatchers("/api/cart/user/**").hasRole("USER")
-                        .requestMatchers("/api/cart/migrate").hasRole("USER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

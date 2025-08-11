@@ -172,7 +172,7 @@ public class UPicSvc {
         return false;
     }
 
-    @Scheduled(cron = "0 5 0 * * ?")
+    @Scheduled(cron = "0 5 0 * * ?") //매일 새벽 0시 5분에 메서드 실행/비활성화가 정상임
     public void deleteExpiredWishlists() {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
         uPicRepo.deleteByAddedAtBefore(sevenDaysAgo);
