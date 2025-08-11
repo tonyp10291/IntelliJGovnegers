@@ -53,12 +53,14 @@ public class PaymentController {
             paymentData.put("createdAt", System.currentTimeMillis());
             paymentData.put("deliveryInfo", request.get("deliveryInfo"));
             paymentData.put("payMethod", request.get("payMethod"));
-            // 선택: 저장/검증에 필요한 추가 값들도 담아 둠
-            paymentData.put("productId", request.get("productId"));
-            paymentData.put("productPrice", request.get("productPrice"));
-            paymentData.put("quantity", request.get("quantity"));
+//            paymentData.put("productId", request.get("productId"));//*
+//            paymentData.put("productPrice", request.get("productPrice"));//*
+//            paymentData.put("quantity", request.get("quantity"));//*
+            List<Map<String, Object>> productInfo = (List<Map<String, Object>>) request.get("productInfo");
+            paymentData.put("productInfo", productInfo);
             paymentData.put("shippingCost", request.get("shippingCost"));
             paymentData.put("userId", request.get("userId"));
+            paymentData.put("guestId", request.get("guestId"));
 
             payments.put(merchantUid, paymentData);
 

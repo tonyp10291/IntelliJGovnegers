@@ -48,7 +48,6 @@ public class OrderSvc {
                 .build();
         orderInfoRepo.save(orderInfo);
 
-        // 단일상품 기준 저장 (여러 개면 반복으로 확장)
         Integer pid = toInt(payment.get("productId"));
         Product product = (pid != null) ? pdRepo.findById(pid).orElse(null) : null;
 
@@ -56,7 +55,7 @@ public class OrderSvc {
                 .orderInfo(orderInfo)
                 .product(product)
                 .pnm((String) payment.getOrDefault("productName", product != null ? product.getPnm() : null))
-                .price(toInt(payment.get("productPrice")))
+                .price(finalPayment)
                 .quantity(toInt(payment.get("quantity")))
                 .imgFilename(product != null ? product.getImage() : null)
                 .paymentMethod((String) payment.get("payMethod"))
