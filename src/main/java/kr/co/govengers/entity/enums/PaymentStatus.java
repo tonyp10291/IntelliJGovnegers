@@ -5,6 +5,6 @@ public enum PaymentStatus {
     결제대기,
     결제실패,
     환불요청,
-    환불완료
+    환불완료,
 
 }
