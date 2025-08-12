@@ -3,13 +3,15 @@ package kr.co.govengers.service;
 import kr.co.govengers.dto.ProductDTO;
 import kr.co.govengers.dto.ProductRegisterRequest;
 import kr.co.govengers.entity.Product;
-import kr.co.govengers.entity.enums.AdminStatus;
 import kr.co.govengers.entity.enums.MainCategory;
-import kr.co.govengers.entity.enums.UserStatus;
+import kr.co.govengers.repository.CartRepo;
+import kr.co.govengers.repository.MRvRepo;
 import kr.co.govengers.repository.PdRepo;
+import kr.co.govengers.repository.UPicRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,14 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +33,9 @@ import java.util.stream.Collectors;
 public class PdSvc {
 
     private final PdRepo PdRepo;
+    private final CartRepo cartRepo;
+    private final MRvRepo mRvRepo;
+    private final UPicRepo uPicRepo;
 
     @Value("${custom.upload-path:src/main/resources/static/img}")
     private String uploadDirectory;
@@ -46,20 +48,18 @@ public class PdSvc {
     @Transactional(readOnly = true)
     public Page<ProductDTO> getProducts(int page, int size, String mainCategory, String search) {
         Pageable pageable = PageRequest.of(page, size);
-
         List<Product> all = PdRepo.findAll();
         List<ProductDTO> filtered = all.stream()
-                .filter(p -> mainCategory == null || mainCategory.isBlank() ||
-                        (p.getMainCategory() != null && p.getMainCategory().name().equals(mainCategory)))
-                .filter(p -> search == null || search.isBlank() ||
-                        (p.getPnm() != null && p.getPnm().toLowerCase().contains(search.toLowerCase())))
+                .filter(p -> mainCategory == null || mainCategory.isBlank()
+                        || (p.getMainCategory() != null && p.getMainCategory().name().equals(mainCategory)))
+                .filter(p -> search == null || search.isBlank()
+                        || (p.getPnm() != null && p.getPnm().toLowerCase().contains(search.toLowerCase())))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filtered.size());
-        List<ProductDTO> pageList = filtered.subList(start, end);
-
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<ProductDTO> pageList = (start <= end ? filtered.subList(start, end) : List.of());
         return new PageImpl<>(pageList, pageable, filtered.size());
     }
 
@@ -82,13 +82,11 @@ public class PdSvc {
     public ProductDTO getProductById(Integer pid) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
-
         try {
             increaseHitSafely(pid);
         } catch (Exception e) {
-            log.warn("조회수 증가 실패 (상품 조회는 정상 진행): {}", e.getMessage());
+            log.warn("조회수 증가 실패: {}", e.getMessage());
         }
-
         return convertToDTO(product);
     }
 
@@ -97,7 +95,7 @@ public class PdSvc {
         try {
             Product product = PdRepo.findById(pid).orElse(null);
             if (product != null) {
-                product.setHit(product.getHit() + 1);
+                product.setHit(product.getHit());
                 PdRepo.save(product);
             }
         } catch (Exception e) {
@@ -137,7 +135,6 @@ public class PdSvc {
 
     public Product registerProduct(ProductRegisterRequest req, MultipartFile imageFile) {
         String savedFilename = null;
-
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
                 savedFilename = saveImageFile(imageFile);
@@ -147,11 +144,7 @@ public class PdSvc {
         }
 
         MainCategory mainCategory = MainCategory.valueOf(req.getMainCategory());
-        LocalDate expDate = null;
-
-        if (req.getExpDate() != null && !req.getExpDate().isBlank()) {
-            expDate = LocalDate.parse(req.getExpDate());
-        }
+        LocalDate expDate = (req.getExpDate() != null && !req.getExpDate().isBlank()) ? LocalDate.parse(req.getExpDate()) : null;
 
         Product product = Product.builder()
                 .pnm(req.getPnm())
@@ -168,38 +161,25 @@ public class PdSvc {
         return PdRepo.save(product);
     }
 
+    public Integer createReturnPid(ProductRegisterRequest req, MultipartFile imageFile) {
+        Product saved = registerProduct(req, imageFile);
+        return saved.getPid();
+    }
+
     @Transactional
     public Product updateProduct(Integer pid, Product updatedProduct) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
 
-        if (updatedProduct.getPnm() != null) {
-            product.setPnm(updatedProduct.getPnm());
-        }
-        if (updatedProduct.getMainCategory() != null) {
-            product.setMainCategory(updatedProduct.getMainCategory());
-        }
-        if (updatedProduct.getPrice() != null) {
-            product.setPrice(updatedProduct.getPrice());
-        }
-        if (updatedProduct.getPdesc() != null) {
-            product.setPdesc(updatedProduct.getPdesc());
-        }
-        if (updatedProduct.getOrigin() != null) {
-            product.setOrigin(updatedProduct.getOrigin());
-        }
-        if (updatedProduct.getExpDate() != null) {
-            product.setExpDate(updatedProduct.getExpDate());
-        }
-        if (updatedProduct.getHit() != null) {
-            product.setHit(updatedProduct.getHit());
-        }
-        if (updatedProduct.getSoldout() != null) {
-            product.setSoldout(updatedProduct.getSoldout());
-        }
-        if (updatedProduct.getImage() != null) {
-            product.setImage(updatedProduct.getImage());
-        }
+        if (updatedProduct.getPnm() != null) product.setPnm(updatedProduct.getPnm());
+        if (updatedProduct.getMainCategory() != null) product.setMainCategory(updatedProduct.getMainCategory());
+        if (updatedProduct.getPrice() != null) product.setPrice(updatedProduct.getPrice());
+        if (updatedProduct.getPdesc() != null) product.setPdesc(updatedProduct.getPdesc());
+        if (updatedProduct.getOrigin() != null) product.setOrigin(updatedProduct.getOrigin());
+        if (updatedProduct.getExpDate() != null) product.setExpDate(updatedProduct.getExpDate());
+        if (updatedProduct.getHit() != null) product.setHit(updatedProduct.getHit());
+        if (updatedProduct.getSoldout() != null) product.setSoldout(updatedProduct.getSoldout());
+        if (updatedProduct.getImage() != null) product.setImage(updatedProduct.getImage());
 
         return PdRepo.save(product);
     }
@@ -212,23 +192,52 @@ public class PdSvc {
         return PdRepo.save(product);
     }
 
+    @Transactional
     public void deleteProduct(Integer pid) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
+        try {
+            log.info("상품 삭제 시작: pid={}", pid);
 
-        String imgFilename = product.getImage();
-        if (imgFilename != null && !imgFilename.isEmpty()) {
-            deleteImageFile(imgFilename);
+            long cartCount = cartRepo.countByProduct_Pid(pid);
+            if (cartCount > 0) {
+                cartRepo.deleteByProduct_Pid(pid);
+            }
+
+            long reviewCount = mRvRepo.countByProduct_Pid(pid);
+            if (reviewCount > 0) {
+                mRvRepo.deleteByProduct_Pid(pid);
+            }
+
+            long wishlistCount = uPicRepo.countByProduct_Pid(pid);
+            if (wishlistCount > 0) {
+                uPicRepo.deleteByProduct_Pid(pid);
+            }
+
+            String imgFilename = product.getImage();
+            if (imgFilename != null && !imgFilename.isEmpty()) {
+                deleteImageFile(imgFilename);
+            }
+
+            deleteDetailDir(pid);
+
+            PdRepo.deleteById(pid);
+            log.info("상품 삭제 완료: pid={}", pid);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("상품 삭제 실패: 다른 데이터에서 참조되고 있어 삭제할 수 없습니다.");
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("상품 삭제 중 오류: {}", e.getMessage(), e);
+            throw new RuntimeException("상품 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
-
-        PdRepo.deleteById(pid);
     }
 
     public String saveProductImage(Integer pid, MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             throw new RuntimeException("업로드할 파일이 없습니다.");
         }
-
         String savedFilename = saveImageFile(file);
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
@@ -240,7 +249,6 @@ public class PdSvc {
     public void toggleHit(Integer pid, Integer hit) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
-
         product.setHit(hit != null && hit == 1 ? 1 : 0);
         PdRepo.save(product);
     }
@@ -248,7 +256,6 @@ public class PdSvc {
     public void toggleSoldout(Integer pid, Integer soldout) {
         Product product = PdRepo.findById(pid)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + pid));
-
         product.setSoldout(soldout != null && soldout == 1 ? 1 : 0);
         PdRepo.save(product);
     }
@@ -257,7 +264,7 @@ public class PdSvc {
     public void increaseHit(Integer pid) {
         Product product = PdRepo.findById(pid).orElse(null);
         if (product != null) {
-            product.setHit(product.getHit() + 1);
+            product.setHit(product.getHit());
             PdRepo.save(product);
         }
     }
@@ -297,17 +304,13 @@ public class PdSvc {
     @Transactional(readOnly = true)
     public Page<Product> getAllProductsPaging(int page, int size, String mainCategory, String search) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("pid").descending());
-
-        if ((mainCategory == null || mainCategory.isBlank()) &&
-                (search == null || search.isBlank())) {
+        if ((mainCategory == null || mainCategory.isBlank()) && (search == null || search.isBlank())) {
             return PdRepo.findAll(pageable);
-        } else if (mainCategory != null && !mainCategory.isBlank() &&
-                (search == null || search.isBlank())) {
+        } else if (mainCategory != null && !mainCategory.isBlank() && (search == null || search.isBlank())) {
             return PdRepo.findByMainCategory(MainCategory.valueOf(mainCategory), pageable);
         } else if (search != null && !search.isBlank()) {
             return PdRepo.findByPnmContainingIgnoreCase(search, pageable);
         }
-
         return PdRepo.findAll(pageable);
     }
 
@@ -323,35 +326,96 @@ public class PdSvc {
                 .hit(product.getHit())
                 .soldout(product.getSoldout())
                 .image(product.getImage())
+                .shippingCost(product.shippingCost())
                 .build();
     }
 
     public String saveImageFile(MultipartFile file) throws IOException {
         File uploadDir = new File(uploadDirectory);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
+        if (!uploadDir.exists()) uploadDir.mkdirs();
 
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
-            throw new IllegalArgumentException("파일명이 없습니다.");
-        }
-
-        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String savedFilename = UUID.randomUUID().toString() + extension;
+        String originalFilename = Objects.requireNonNull(file.getOriginalFilename(), "파일명이 없습니다.");
+        String ext = originalFilename.contains(".") ? originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
+        String savedFilename = UUID.randomUUID() + ext;
 
         Path path = Paths.get(uploadDirectory, savedFilename);
-        Files.copy(file.getInputStream(), path);
-
+        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
         return savedFilename;
     }
 
     private void deleteImageFile(String filename) {
         try {
-            Path path = Paths.get(uploadDirectory, filename);
-            Files.deleteIfExists(path);
+            Files.deleteIfExists(Paths.get(uploadDirectory, filename));
         } catch (IOException e) {
             log.error("이미지 파일 삭제 실패: {}", e.getMessage());
+        }
+    }
+
+    private Path detailDir(Integer pid) {
+        return Paths.get(uploadDirectory, "products", String.valueOf(pid));
+    }
+    public List<String> saveDetailImages(Integer pid, List<MultipartFile> files) {
+        if (pid == null || files == null || files.isEmpty()) return List.of();
+
+        try {
+            Path dir = detailDir(pid);
+            Files.createDirectories(dir);
+
+            List<String> saved = new ArrayList<>();
+            for (MultipartFile f : files) {
+                if (f.isEmpty()) continue;
+                String original = Objects.requireNonNullElse(f.getOriginalFilename(), "file");
+                String ext = original.contains(".") ? original.substring(original.lastIndexOf(".")) : "";
+                String name = UUID.randomUUID() + ext;
+                Files.copy(f.getInputStream(), dir.resolve(name), StandardCopyOption.REPLACE_EXISTING);
+                saved.add("products/" + pid + "/" + name); // /api/images/ 와 결합해서 사용
+            }
+            return saved;
+        } catch (IOException e) {
+            throw new RuntimeException("상세 이미지 저장 실패: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> listDetailImages(Integer pid) {
+        try {
+            Path dir = detailDir(pid);
+            if (!Files.exists(dir)) return List.of();
+            try (Stream<Path> s = Files.list(dir)) {
+                return s.filter(Files::isRegularFile)
+                        .sorted()
+                        .map(p -> "products/" + pid + "/" + p.getFileName())
+                        .collect(Collectors.toList());
+            }
+        } catch (IOException e) {
+            log.warn("상세 이미지 조회 실패: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    public boolean deleteDetailImage(Integer pid, String filename) {
+        try {
+            Path p = detailDir(pid).resolve(filename);
+            return Files.deleteIfExists(p);
+        } catch (IOException e) {
+            log.warn("상세 이미지 삭제 실패: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private void deleteDetailDir(Integer pid) {
+        Path dir = detailDir(pid);
+        if (!Files.exists(dir)) return;
+        try (Stream<Path> s = Files.walk(dir)) {
+            s.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try {
+                    Files.deleteIfExists(p);
+                } catch (IOException e) {
+                    log.warn("상세 이미지 폴더 삭제 실패: {}", e.getMessage());
+                }
+            });
+        } catch (IOException e) {
+            log.warn("상세 이미지 폴더 순회 실패: {}", e.getMessage());
         }
     }
 }

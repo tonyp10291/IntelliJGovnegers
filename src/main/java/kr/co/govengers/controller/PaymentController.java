@@ -2,10 +2,14 @@ package kr.co.govengers.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.govengers.service.PdOrdSvc;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import kr.co.govengers.service.OrderSvc;
+import java.util.List;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,10 +19,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 @RequestMapping("/api/payment")
 @Slf4j
+@RequiredArgsConstructor
 public class PaymentController {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final OrderSvc orderSvc;
+    private final PdOrdSvc pdOrdSvc;
 
     private final Map<String, Map<String, Object>> payments = new ConcurrentHashMap<>();
     private final Map<String, String> impUidToMerchantUid = new ConcurrentHashMap<>();
@@ -48,10 +55,32 @@ public class PaymentController {
             paymentData.put("deliveryInfo", request.get("deliveryInfo"));
             paymentData.put("payMethod", request.get("payMethod"));
 
-            payments.put(merchantUid, paymentData);
+            paymentData.put("receiverName", request.get("receiverName"));
+            paymentData.put("zipCode", request.get("zipCode"));
+            paymentData.put("address", request.get("address"));
+            paymentData.put("detailAddress", request.get("detailAddress"));
+            paymentData.put("deliveryMemo", request.get("deliveryMemo"));
 
-            log.info("결제 데이터 저장 완료 - merchantUid: {}", merchantUid);
-            log.info("현재 저장된 결제 건수: {}", payments.size());
+            List<Map<String, Object>> productInfoList = (List<Map<String, Object>>) request.get("productInfo");
+            if (productInfoList != null && !productInfoList.isEmpty()) {
+                Map<String, Object> firstProduct = productInfoList.get(0);
+                paymentData.put("productId", firstProduct.get("productId"));
+                paymentData.put("productPrice", firstProduct.get("productPrice"));
+                paymentData.put("quantity", firstProduct.get("quantity"));
+
+                log.info("추출된 상품 정보 - productId: {}, quantity: {}",
+                        firstProduct.get("productId"), firstProduct.get("quantity"));
+                log.info("추출된 배송 정보 - receiverName: {}, zipCode: {}",
+                        request.get("receiverName"), request.get("zipCode"));
+            } else {
+                log.warn("productInfo가 없거나 빈 배열입니다.");
+            }
+
+            paymentData.put("shippingCost", request.get("shippingCost"));
+            paymentData.put("userId", request.get("userId"));
+            paymentData.put("productInfoList", productInfoList);
+
+            payments.put(merchantUid, paymentData);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -99,11 +128,7 @@ public class PaymentController {
             HttpEntity<String> entity = new HttpEntity<>(headers);
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
-            log.info("포트원 API 응답 상태: {}", response.getStatusCode());
-            log.info("포트원 API 응답 본문: {}", response.getBody());
-
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-
             if (jsonNode.get("code").asInt() != 0) {
                 throw new RuntimeException("결제 정보 조회 실패: " + jsonNode.get("message").asText());
             }
@@ -113,23 +138,12 @@ public class PaymentController {
             int paidAmount = paymentData.get("amount").asInt();
             String status = paymentData.get("status").asText();
 
-            log.info("포트원에서 조회한 결제 정보:");
-            log.info("- merchantUid: {}", portOneMerchantUid);
-            log.info("- amount: {}", paidAmount);
-            log.info("- status: {}", status);
-
             Map<String, Object> payment = payments.get(portOneMerchantUid);
             if (payment == null) {
-                log.error("주문을 찾을 수 없습니다.");
-                log.error("포트원 merchantUid: {}", portOneMerchantUid);
-                log.error("클라이언트에서 전송한 merchantUid: {}", merchantUid);
-                log.error("메모리에 저장된 주문 목록: {}", payments.keySet());
-
                 if (merchantUid != null && payments.containsKey(merchantUid)) {
-                    log.info("클라이언트 merchantUid로 주문 발견: {}", merchantUid);
                     payment = payments.get(merchantUid);
                     if (!merchantUid.equals(portOneMerchantUid)) {
-                        log.warn("merchantUid 불일치 감지 - 클라이언트: {}, 포트원: {}", merchantUid, portOneMerchantUid);
+                        log.warn("merchantUid 불일치 - 클라이언트:{}, 포트원:{}", merchantUid, portOneMerchantUid);
                     }
                 } else {
                     throw new RuntimeException("주문을 찾을 수 없습니다: " + portOneMerchantUid);
@@ -137,23 +151,14 @@ public class PaymentController {
             }
 
             Object amountObj = payment.get("amount");
-            int originalAmount;
-
-            if (amountObj instanceof Integer) {
-                originalAmount = (Integer) amountObj;
-            } else if (amountObj instanceof Double) {
-                originalAmount = ((Double) amountObj).intValue();
-            } else if (amountObj instanceof String) {
-                originalAmount = Integer.parseInt((String) amountObj);
-            } else {
-                throw new RuntimeException("결제 금액 형식이 올바르지 않습니다: " + amountObj);
-            }
-
-            log.info("금액 검증 - 원래 금액: {}, 실제 결제 금액: {}", originalAmount, paidAmount);
+            int originalAmount =
+                    (amountObj instanceof Integer i) ? i :
+                            (amountObj instanceof Double d) ? d.intValue() :
+                                    (amountObj instanceof String s) ? Integer.parseInt(s) :
+                                            -1;
 
             if (originalAmount != paidAmount) {
-                log.error("금액 불일치!");
-                throw new RuntimeException("결제 금액이 일치하지 않습니다. 원래: " + originalAmount + ", 실제: " + paidAmount);
+                throw new RuntimeException("결제 금액 불일치. 원래:" + originalAmount + ", 실제:" + paidAmount);
             }
 
             boolean isSuccess = "paid".equals(status);
@@ -165,9 +170,13 @@ public class PaymentController {
 
             impUidToMerchantUid.put(impUid, portOneMerchantUid);
 
-            log.info("결제 상태 업데이트 완료:");
-            log.info("- 결제 상태: {}", payment.get("status"));
-            log.info("- 포트원 상태: {}", status);
+            if (isSuccess) {
+                try {
+                    orderSvc.saveFromPaymentMap(payment, impUid);
+                } catch (Exception ex) {
+                    log.error("결제 정보 DB 저장 실패", ex);
+                }
+            }
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", isSuccess);
@@ -176,9 +185,6 @@ public class PaymentController {
             result.put("amount", paidAmount);
             result.put("status", payment.get("status"));
             result.put("message", isSuccess ? "결제가 완료되었습니다" : "결제가 실패했습니다");
-
-            log.info("=== 결제 검증 완료 ===");
-            log.info("검증 결과: {}", result);
 
             return ResponseEntity.ok(result);
 
@@ -195,15 +201,11 @@ public class PaymentController {
     @PostMapping("/webhook")
     public ResponseEntity<Map<String, Object>> handleWebhook(@RequestBody Map<String, Object> webhook) {
         try {
-            log.info("=== 웹훅 수신 ===");
-            log.info("웹훅 데이터: {}", webhook);
-
             String impUid = (String) webhook.get("imp_uid");
             String merchantUid = (String) webhook.get("merchant_uid");
             String status = (String) webhook.get("status");
 
             if (impUid == null || merchantUid == null) {
-                log.warn("웹훅 데이터 불완전: impUid={}, merchantUid={}", impUid, merchantUid);
                 return ResponseEntity.ok(Map.of("status", "ignored"));
             }
 
@@ -215,10 +217,8 @@ public class PaymentController {
                 payment.put("webhookReceivedAt", System.currentTimeMillis());
 
                 impUidToMerchantUid.put(impUid, merchantUid);
-
-                log.info("웹훅으로 결제 상태 업데이트 완료: {} -> {}", merchantUid, status);
             } else {
-                log.warn("웹훅으로 전달받은 주문을 메모리에서 찾을 수 없음: {}", merchantUid);
+                log.warn("웹훅 주문 미발견: {}", merchantUid);
             }
 
             return ResponseEntity.ok(Map.of("status", "success"));
@@ -242,8 +242,6 @@ public class PaymentController {
     @GetMapping("/status/imp/{impUid}")
     public ResponseEntity<Map<String, Object>> getPaymentStatusByImpUid(@PathVariable String impUid) {
         try {
-            log.info("impUid로 결제 상태 조회: {}", impUid);
-
             String merchantUid = impUidToMerchantUid.get(impUid);
             if (merchantUid == null) {
                 throw new RuntimeException("해당 impUid로 주문을 찾을 수 없습니다: " + impUid);
@@ -266,7 +264,6 @@ public class PaymentController {
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            log.error("impUid로 결제 상태 조회 실패", e);
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("message", e.getMessage());
@@ -277,9 +274,6 @@ public class PaymentController {
     @PostMapping("/cancel")
     public ResponseEntity<Map<String, Object>> cancelPayment(@RequestBody Map<String, String> request) {
         try {
-            log.info("=== 결제 취소 요청 시작 ===");
-            log.info("요청 데이터: {}", request);
-
             String impUid = request.get("impUid");
             String accessToken = getAccessToken();
             String url = PORTONE_API_URL + "/payments/cancel";
@@ -305,7 +299,6 @@ public class PaymentController {
                     if (payment != null) {
                         payment.put("status", "CANCELLED");
                         payment.put("cancelledAt", System.currentTimeMillis());
-                        log.info("결제 취소 상태 업데이트 완료: {}", merchantUid);
                     }
                 }
 
@@ -319,7 +312,6 @@ public class PaymentController {
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            log.error("결제 취소 실패", e);
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("message", "결제 취소 실패: " + e.getMessage());
@@ -327,57 +319,150 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/status/{merchantUid}")
-    public ResponseEntity<Map<String, Object>> getPaymentStatus(@PathVariable String merchantUid) {
+    @PostMapping("/cancel/order")
+    public ResponseEntity<Map<String, Object>> cancelOrder(@RequestBody Map<String, Object> request) {
         try {
-            log.info("결제 상태 조회 요청 - merchantUid: {}", merchantUid);
+            String reason = (String) request.getOrDefault("reason", "관리자 취소");
+            Long orderId = Long.valueOf(request.get("orderId").toString());
+            String impUid = (String) request.get("impUid"); // 프론트에서 받은 impUid
 
-            Map<String, Object> payment = payments.get(merchantUid);
-            if (payment == null) {
-                throw new RuntimeException("주문을 찾을 수 없습니다: " + merchantUid);
+            log.info("관리자 주문 전체 취소 요청 - orderId: {}, impUid: {}", orderId, impUid);
+
+            if (impUid != null && !impUid.trim().isEmpty()) {
+                log.info("포트원 결제 취소 진행 - impUid: {}", impUid);
+
+                String accessToken = getAccessToken();
+                String url = PORTONE_API_URL + "/payments/cancel";
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + accessToken);
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("imp_uid", impUid);
+                body.put("reason", reason);
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+                log.info("포트원 취소 요청 전송 - URL: {}, Body: {}", url, body);
+
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+                log.info("포트원 응답 상태: {}", response.getStatusCode());
+                log.info("포트원 응답 본문: {}", response.getBody());
+
+                JsonNode jsonNode = objectMapper.readTree(response.getBody());
+
+                if (jsonNode.get("code").asInt() != 0) {
+                    String errorMsg = jsonNode.get("message").asText();
+                    log.error("포트원 취소 실패 - code: {}, message: {}",
+                            jsonNode.get("code").asInt(), errorMsg);
+                    throw new RuntimeException("포트원 결제 취소 실패: " + errorMsg);
+                }
+
+                log.info("포트원 결제 취소 성공!");
+
+                String merchantUid = impUidToMerchantUid.get(impUid);
+                if (merchantUid != null) {
+                    Map<String, Object> payment = payments.get(merchantUid);
+                    if (payment != null) {
+                        payment.put("status", "CANCELLED");
+                        payment.put("cancelledAt", System.currentTimeMillis());
+                    }
+                }
+            } else {
+                log.warn("impUid가 없어서 포트원 취소를 건너뜁니다.");
             }
+
+            pdOrdSvc.cancelWholeOrderAndRefund(orderId, reason);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
-            result.put("merchantUid", merchantUid);
-            result.put("impUid", payment.get("impUid"));
-            result.put("amount", payment.get("amount"));
-            result.put("status", payment.get("status"));
-            result.put("productName", payment.get("productName"));
-            result.put("createdAt", payment.get("createdAt"));
-            result.put("paidAt", payment.get("paidAt"));
-            result.put("message", "조회 성공");
-
+            result.put("message", "주문이 취소되었습니다");
+            result.put("orderId", orderId);
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            log.error("결제 상태 조회 실패", e);
+            log.error("관리자 주문 취소 실패", e);
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
-            error.put("message", "결제 상태 조회 실패: " + e.getMessage());
+            error.put("message", "주문 취소 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/cancel/check/{impUid}")
+    public ResponseEntity<Map<String, Object>> checkCancelable(@PathVariable String impUid) {
+        try {
+            String accessToken = getAccessToken();
+            String url = PORTONE_API_URL + "/payments/" + impUid;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+
+            if (jsonNode.get("code").asInt() == 0) {
+                JsonNode paymentData = jsonNode.get("response");
+                String status = paymentData.get("status").asText();
+                int paidAmount = paymentData.get("amount").asInt();
+                int cancelledAmount = paymentData.get("cancel_amount") != null ?
+                        paymentData.get("cancel_amount").asInt() : 0;
+
+                boolean cancelable = "paid".equals(status) && (paidAmount > cancelledAmount);
+                int remainingAmount = paidAmount - cancelledAmount;
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("success", true);
+                result.put("cancelable", cancelable);
+                result.put("paidAmount", paidAmount);
+                result.put("cancelledAmount", cancelledAmount);
+                result.put("remainingAmount", remainingAmount);
+                result.put("status", status);
+
+                return ResponseEntity.ok(result);
+            } else {
+                throw new RuntimeException("결제 정보 조회 실패: " + jsonNode.get("message").asText());
+            }
+
+        } catch (Exception e) {
+            log.error("취소 가능 여부 확인 실패", e);
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "취소 가능 여부 확인 실패: " + e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
     }
 
     private String getAccessToken() {
         try {
+            if (API_KEY == null || API_KEY.isBlank() || API_SECRET == null || API_SECRET.isBlank()) {
+                throw new IllegalStateException("PortOne API_KEY/API_SECRET 미설정");
+            }
+
             String url = PORTONE_API_URL + "/users/getToken";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-            Map<String, String> body = new HashMap<>();
-            body.put("imp_key", API_KEY);
-            body.put("imp_secret", API_SECRET);
+            Map<String, String> body = Map.of(
+                    "imp_key", API_KEY,
+                    "imp_secret", API_SECRET
+            );
 
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+            String json = objectMapper.writeValueAsString(body);
+            log.debug("PortOne getToken 요청 바디: {}", json);
 
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            HttpEntity<String> entity = new HttpEntity<>(json, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-
             if (jsonNode.get("code").asInt() == 0) {
-                String token = jsonNode.get("response").get("access_token").asText();
-                return token;
+                return jsonNode.get("response").get("access_token").asText();
             } else {
                 throw new RuntimeException("토큰 발급 실패: " + jsonNode.get("message").asText());
             }

@@ -9,6 +9,10 @@ import java.util.List;
 
 public interface UQnARepo extends JpaRepository<Inquiry, Long> {
 
+    List<Inquiry> findByUserUidOrderByCreatedAtDesc(String uid);
+    List<Inquiry> findByUserUidAndCategory(String uid, InquiryCategory category);
+    List<Inquiry> findByUserUidAndTitleContaining(String uid, String keyword);
+    List<Inquiry> findByUserUidAndCategoryAndTitleContaining(String uid, InquiryCategory category, String keyword);
     List<Inquiry> findAllByOrderByCreatedAtDesc();
 
     @Query("SELECT i FROM Inquiry i ORDER BY i.createdAt DESC")

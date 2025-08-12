@@ -23,9 +23,14 @@ public class UQnAController {
     public ResponseEntity<List<Inquiry>> getInquiries(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String uid,
             @AuthenticationPrincipal User user
     ) {
         try {
+            if (uid != null && !uid.isBlank()) {
+                List<Inquiry> inquiries = uqnASvc.findInquiriesByUid(uid, category, keyword);
+                return ResponseEntity.ok(inquiries);
+            }
             String userId = user != null ? user.getUid() : null;
             List<Inquiry> inquiries = uqnASvc.findInquiriesForUser(category, keyword, userId);
             return ResponseEntity.ok(inquiries);
@@ -77,20 +82,16 @@ public class UQnAController {
             @AuthenticationPrincipal User user
     ) {
         Map<String, Object> response = new HashMap<>();
-
         try {
             if (user == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.status(401).body(response);
             }
-
             Inquiry updatedInquiry = uqnASvc.updateInquiry(inquiryId, inquiry, user.getUid());
-
             response.put("success", true);
             response.put("message", "수정되었습니다.");
             response.put("data", updatedInquiry);
-
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -106,19 +107,15 @@ public class UQnAController {
             @AuthenticationPrincipal User user
     ) {
         Map<String, Object> response = new HashMap<>();
-
         try {
             if (user == null) {
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.status(401).body(response);
             }
-
             uqnASvc.deleteInquiry(inquiryId, user.getUid());
-
             response.put("success", true);
             response.put("message", "삭제되었습니다.");
-
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();

@@ -10,6 +10,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepo extends JpaRepository<User, String> {
+
+    Optional<User> findByUid(String uid);
+    boolean existsByUid(String uid);
+
     Page<User> findByUidContainingIgnoreCaseOrUnmContainingIgnoreCase(String uid, String unm, Pageable pageable);
     Page<User> findByEnabledTrue(Pageable pageable);
     Page<User> findByEnabledTrueAndUidContainingIgnoreCaseOrEnabledTrueAndUnmContainingIgnoreCase(

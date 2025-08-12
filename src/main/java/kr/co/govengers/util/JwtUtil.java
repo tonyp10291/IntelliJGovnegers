@@ -39,6 +39,14 @@ public class JwtUtil {
                 .compact();
     }
 
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
@@ -49,6 +57,14 @@ public class JwtUtil {
 
     public String getUidFromToken(String token) {
         return extractAllClaims(token).getSubject();
+    }
+    public String getUid(String token) { // alias
+        return getUidFromToken(token);
+    }
+
+    public String getRoleFromToken(String token) {
+        Object r = parseClaims(token).get("role");
+        return r == null ? null : String.valueOf(r);
     }
 
     private boolean isTokenExpired(String token) {

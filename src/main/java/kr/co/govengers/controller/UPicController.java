@@ -58,9 +58,9 @@ public class UPicController {
 
         boolean success = uPicSvc.addUserWishlist(user.getUid(), pid);
         if (success) {
-            return new ResponseEntity<>("로그인 위시리스트 추가 성공", HttpStatus.OK);
+            return new ResponseEntity<>("wishlist 추가 성공", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("로그인 위시리스트 추가 실패", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("wishlist 추가 실패", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -97,7 +97,6 @@ public class UPicController {
         if (guestId == null || guestId.isEmpty() || user == null) {
             return ResponseEntity.badRequest().build();
         }
-        System.out.println("통과@@@@@@@@@@@@@@@@@");
         boolean success = uPicSvc.migrateGuestWishlist(guestId, user);
         if (success) {
             return new ResponseEntity<>("Wishlist 비로그인 데이터 삭제 성공", HttpStatus.OK);

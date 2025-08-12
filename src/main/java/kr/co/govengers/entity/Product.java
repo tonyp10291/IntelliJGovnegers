@@ -6,6 +6,8 @@ import kr.co.govengers.entity.enums.MainCategory;
 import kr.co.govengers.entity.enums.UserStatus;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
