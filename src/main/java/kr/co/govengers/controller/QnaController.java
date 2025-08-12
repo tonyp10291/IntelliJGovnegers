@@ -44,11 +44,10 @@ public class QnaController {
     }
     @Data static class VerifyReq { private String password; }
 
-    /** QnA 등록: 로그인 필요 (SecurityConfig에서 /api/qna POST 허용됨) */
     @PostMapping
     public ResponseEntity<?> write(@RequestBody QnaWriteRequest req, Authentication auth) {
         if (auth == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        qnaService.write(req, auth.getName()); // auth.getName() = uid
+        qnaService.write(req, auth.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -61,7 +60,7 @@ public class QnaController {
                                          Authentication auth) {
         String content = body.get("content");
         User admin = (User) auth.getPrincipal();
-        qnaService.writeAnswer(qid, content, admin.getUid()); // 서비스에서 권한/상태 검증
+        qnaService.writeAnswer(qid, content, admin.getUid());
         return ResponseEntity.ok().build();
     }
 
@@ -71,10 +70,9 @@ public class QnaController {
     }
 
     @DeleteMapping("/{qid}")
-    // 관리자만 제한하지 말고, 인증만 요구 — 권한 검증은 서비스에서 처리
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> delete(@PathVariable Long qid, Authentication auth) {
-        String uid = uidFromAuth(auth); // 토큰의 uid
+        String uid = uidFromAuth(auth);
         qnaService.delete(qid, uid);
         return ResponseEntity.noContent().build();
     }
@@ -82,12 +80,11 @@ public class QnaController {
     private String uidFromAuth(Authentication auth) {
         if (auth == null) return null;
         Object p = auth.getPrincipal();
-        if (p instanceof String s) return s; // JwtFilter에서 principal=uid 문자열
+        if (p instanceof String s) return s;
         if (p instanceof User u) return u.getUid();
         return auth.getName();
     }
 
-    /* ===== 댓글 삭제 (관리자만) ===== */
     @DeleteMapping("/{qid}/comments/{cid}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteComment(@PathVariable Long qid, @PathVariable Long cid) {

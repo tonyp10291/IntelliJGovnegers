@@ -33,7 +33,6 @@ public class ProductImageController {
     @Value("${custom.upload-path:C:/gogiImage}")
     private String rootDir;
 
-    /** 상세 이미지 업로드 (다중) — 관리자 전용 */
     @PostMapping("/{pid}/images/upload")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<String>> upload(
@@ -68,7 +67,6 @@ public class ProductImageController {
         return ResponseEntity.ok(saved);
     }
 
-    /** 상세 이미지 파일명 목록 — 공개 */
     @PostMapping("/{pid}/images/list")
     public ResponseEntity<List<String>> list(@PathVariable Integer pid) {
         List<String> names = productImageRepo.findByProduct_PidOrderByIdAsc(pid)

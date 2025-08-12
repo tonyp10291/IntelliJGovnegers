@@ -58,7 +58,7 @@ public class JwtUtil {
     public String getUidFromToken(String token) {
         return extractAllClaims(token).getSubject();
     }
-    public String getUid(String token) { // alias
+    public String getUid(String token) {
         return getUidFromToken(token);
     }
 

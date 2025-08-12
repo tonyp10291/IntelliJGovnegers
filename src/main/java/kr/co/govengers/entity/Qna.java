@@ -15,7 +15,7 @@ public class Qna {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "qid")              // ★ qid는 여기 "한 군데"만 매핑
+    @Column(name = "qid")
     private Long qid;
 
     @Column(name = "pid", nullable = false)
@@ -39,7 +39,6 @@ public class Qna {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    // ✅ OneToMany는 "mappedBy"만! (소유자는 QnaComment.qna)
     @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QnaComment> comments = new ArrayList<>();
 }

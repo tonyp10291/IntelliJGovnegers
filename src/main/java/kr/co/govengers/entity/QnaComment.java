@@ -1,4 +1,3 @@
-// src/main/java/kr/co/govengers/entity/QnaComment.java
 package kr.co.govengers.entity;
 
 import jakarta.persistence.*;
@@ -17,7 +16,6 @@ public class QnaComment {
     @Column(name = "cid")
     private Long cid;
 
-    // ✅ 다대일 소유자: qna_comment.qid -> qna.qid
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "qid", nullable = false)
     private Qna qna;

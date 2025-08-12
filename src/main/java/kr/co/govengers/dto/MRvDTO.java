@@ -17,9 +17,6 @@ public class MRvDTO {
     private LocalDateTime date;
     private String response;
 
-    /**
-     * Review 엔티티를 DTO로 변환
-     */
     public static MRvDTO from(Review review) {
         return MRvDTO.builder()
                 .id(review.getReviewId())

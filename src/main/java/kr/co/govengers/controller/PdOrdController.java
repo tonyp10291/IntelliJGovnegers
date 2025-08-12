@@ -99,7 +99,6 @@ public class PdOrdController {
         }
     }
 
-    /* ===== 통계 ===== */
     @GetMapping("/orders/statistics")
     public ResponseEntity<?> getOrderStatistics() {
         try {
@@ -175,7 +174,7 @@ public class PdOrdController {
             }
 
             String reason = (req != null) ? req.getOrDefault("cancelReason","관리자 취소") : "관리자 취소";
-            pdOrdSvc.cancelWholeOrderAndRefund(orderId, reason); // ★ 포트원 전체취소 호출
+            pdOrdSvc.cancelWholeOrderAndRefund(orderId, reason);
 
             log.info("주문 전체 취소 완료 - orderId: {}, reason: {}", orderId, reason);
             return ResponseEntity.ok(Map.of("success", true, "message", "주문이 취소되었습니다."));
@@ -270,7 +269,6 @@ public class PdOrdController {
         }
     }
 
-    /* ===== 단건 취소(부분 환불) — 이거 하나만! ===== */
     @PutMapping("/order-items/{itemId}/cancel")
     public ResponseEntity<?> cancelOrderItem(@PathVariable Long itemId,
                                              @RequestBody(required = false) Map<String,String> req) {
@@ -312,7 +310,7 @@ public class PdOrdController {
 
         switch (s) {
             case "주문완료": return AdminStatus.주문완료;
-            case "결제완료": return AdminStatus.주문완료;      // 비즈 규칙
+            case "결제완료": return AdminStatus.주문완료;
             case "배송준비": return AdminStatus.배송준비중;
             case "배송중":   return AdminStatus.배송중;
             case "배송완료": return AdminStatus.배송완료;

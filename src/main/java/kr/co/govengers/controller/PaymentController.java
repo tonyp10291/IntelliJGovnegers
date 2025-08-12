@@ -324,7 +324,7 @@ public class PaymentController {
         try {
             String reason = (String) request.getOrDefault("reason", "관리자 취소");
             Long orderId = Long.valueOf(request.get("orderId").toString());
-            String impUid = (String) request.get("impUid"); // 프론트에서 받은 impUid
+            String impUid = (String) request.get("impUid");
 
             log.info("관리자 주문 전체 취소 요청 - orderId: {}, impUid: {}", orderId, impUid);
 

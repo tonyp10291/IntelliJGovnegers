@@ -368,7 +368,7 @@ public class PdSvc {
                 String ext = original.contains(".") ? original.substring(original.lastIndexOf(".")) : "";
                 String name = UUID.randomUUID() + ext;
                 Files.copy(f.getInputStream(), dir.resolve(name), StandardCopyOption.REPLACE_EXISTING);
-                saved.add("products/" + pid + "/" + name); // /api/images/ 와 결합해서 사용
+                saved.add("products/" + pid + "/" + name);
             }
             return saved;
         } catch (IOException e) {

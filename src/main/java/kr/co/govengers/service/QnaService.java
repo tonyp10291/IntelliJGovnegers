@@ -78,7 +78,7 @@ public class QnaService {
         Qna q = qnaRepository.findById(qid)
                 .orElseThrow(() -> new IllegalArgumentException("QnA가 존재하지 않습니다. qid=" + qid));
         if (!q.isSecret()) return true;
-        return rawPassword != null && rawPassword.equals(q.getPassword()); // 암호화 시 encoder.matches
+        return rawPassword != null && rawPassword.equals(q.getPassword());
     }
 
     @Transactional(readOnly = true)
@@ -115,11 +115,11 @@ public class QnaService {
         QnaComment c = QnaComment.builder()
                 .qna(qna)
                 .content(content)
-                .writerId(adminUid)                 // 관리자 uid
+                .writerId(adminUid)
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        if (qna.getComments() != null) qna.getComments().add(c); // 양방향일 때 안전 추가
+        if (qna.getComments() != null) qna.getComments().add(c);
         QnaComment saved = qnaCommentRepository.save(c);
 
         return saved.getCid();
@@ -143,7 +143,6 @@ public class QnaService {
         qnaCommentRepository.delete(c);
     }
 
-    /** 호환용: writeAnswer 이름을 쓰는 기존 코드가 있으면 이쪽으로 위임 */
     @Transactional
     public Long writeAnswer(Long qid, String content, String adminUid) {
         return addAdminComment(qid, content, adminUid);
