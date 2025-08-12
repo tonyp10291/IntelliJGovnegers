@@ -30,7 +30,7 @@ public class QnaController {
     public Page<QnaSummaryDto> list(@RequestParam Integer pid,
                                     @RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int size) {
-        return qnaService.list(pid, page, size);
+        return qnaService.list(pid, page, size);//
     }
 
     @GetMapping("/{qid:\\d+}")
