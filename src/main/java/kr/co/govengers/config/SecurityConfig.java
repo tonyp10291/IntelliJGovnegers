@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -13,12 +14,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;   // ✅ servlet용
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -29,90 +32,60 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // ✅ filterChain은 "하나만"
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/img/**", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/api/images/**").permitAll()
-                        .requestMatchers("/api/imgs/**").permitAll()
-                        .requestMatchers("/gogiImage/**").permitAll()
-                        .requestMatchers("/api/download/**").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/admin/**").hasRole("ADMIN")
+                        // 정적/이미지 리소스 허용
                         .requestMatchers(
-                            "/api/wishlist/user/**",
-                            "/api/wishlist/migrate",
-                            "/api/cart/user/**",
-                            "/api/cart/migrate"
-                        ).hasRole("USER")
-
-                        .requestMatchers("/api/admin/**").authenticated()
-                        .requestMatchers(
-                                "/api/me",
-                                "/api/login",
-                                "/api/join",
-                                "/api/email/**",
-                                "/api/sms/**",
-                                "/api/products/**",
-                                "/api/wishlist/guest/**",
-                                "/api/search/**",
-                                "/api/notices/**",
-                                "/api/reviews/**",
-                                "/api/inquiry/**",
-                                "/api/find-id",
-                                "/api/find-id-by-email",
-                                "/api/request-password-reset",
-                                "/api/verify-user-for-password-reset",
-                                "/api/reset-password",
-                                "/api/cart/**"
+                                "/img/**", "/images/**", "/static/**", "/favicon.ico", "/error",
+                                "/gogiImage/**", "/uploads/**", "/api/images/**", "/api/imgs/**"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/payment/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/payment/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/payment/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/payment/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/api/payment/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/uqna").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/uqna").authenticated()
+                        // 상세이미지 목록은 공개
+                        .requestMatchers(HttpMethod.POST, "/api/products/*/images/list").permitAll()
+                        // 상세이미지 업로드는 관리자
+                        .requestMatchers(HttpMethod.POST, "/api/products/*/images/upload").hasRole("ADMIN")
 
-                        .anyRequest().authenticated()
+                        // CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // (예시) 공개 API
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/login", "/api/join",
+                                "/api/find-id", "/api/find-id-by-email",
+                                "/api/request-password-reset", "/api/verify-user-for-password-reset", "/api/reset-password"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/products/**",
+                                "/api/notices/**",
+                                "/api/qna/**",
+                                "/api/reviews/**",
+                                "/api/search/**",
+                                "/api/inquiry/**"
+                        ).permitAll()
+
+                        // 나머지는 프로젝트 상황에 따라 결정
+                        .anyRequest().permitAll()   // ⚠️ 개발 편의. 필요시 authenticated()로 변경
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "http://localhost:80",
-                "http://127.0.0.1:80",
-                "https://service.iamport.kr",
-                "https://api.iamport.kr"
-        ));
-
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
-        ));
-        configuration.setAllowCredentials(true);
-        configuration.addAllowedHeader("*");
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+        cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", cfg);
         return source;
     }
 }
