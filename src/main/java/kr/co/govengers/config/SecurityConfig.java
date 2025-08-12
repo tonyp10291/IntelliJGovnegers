@@ -42,6 +42,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/imgs/**").permitAll()
                         .requestMatchers("/gogiImage/**").permitAll()
                         .requestMatchers("/api/download/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/products/*/images/list").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/products/*/images/upload").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN")

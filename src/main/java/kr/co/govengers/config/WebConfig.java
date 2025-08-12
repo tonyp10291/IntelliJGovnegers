@@ -1,5 +1,6 @@
 package kr.co.govengers.config;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${custom.upload-path}")
     private String uploadPath;
+
+    @PostConstruct
+    public void createDirIfNotExists() {
+        File dir = new File(uploadPath);
+        if (!dir.exists()) dir.mkdirs();
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
