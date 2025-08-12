@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -321,7 +320,7 @@ public class PdController {
                     throw new RuntimeException("이미지 저장 실패: " + e.getMessage(), e);
                 }
             }
-            // 파일이 없으면 기존 이미지 유지
+            // 파일이 없으면 기존 이미지 유지 (product.setImage() 호출하지 않음)
 
             Product updated = pdSvc.updateProduct(pid, product);
 
@@ -483,31 +482,6 @@ public class PdController {
             response.put("success", false);
             response.put("message", "가격 업데이트 실패: " + e.getMessage());
             return ResponseEntity.status(400).body(response);
-        }
-    }
-
-    // === JSON 방식만 남긴 최종 register-json ===
-    @PostMapping(
-            value = "/api/admin/products/register-json",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> registerJson(
-            @RequestBody ProductRegisterRequest req,
-            @AuthenticationPrincipal User user
-    ) {
-        Map<String, Object> res = new HashMap<>();
-        try {
-            if (req.getPnm() == null || req.getPnm().isBlank()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "pnm is required"));
-            }
-            Product saved = pdSvc.registerProduct(req, null); // 이미지 없이 저장
-            return ResponseEntity.ok(Map.of("pid", saved.getPid()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            res.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(res);
         }
     }
 

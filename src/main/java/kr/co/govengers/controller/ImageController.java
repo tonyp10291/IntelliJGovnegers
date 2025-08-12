@@ -1,4 +1,3 @@
-// src/main/java/kr/co/govengers/controller/ImageController.java
 package kr.co.govengers.controller;
 
 import lombok.extern.slf4j.Slf4j;
@@ -6,11 +5,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,42 +23,37 @@ public class ImageController {
     @Value("${custom.upload-path}")
     private String uploadPath;
 
-    // 기본 폴백 이미지 파일명 (경로는 위 uploadPath 기준). 없으면 404 반환.
-    @Value("${custom.default-image:default-product.jpg}")
-    private String defaultImage;
-
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) {
         try {
-            Path base = Paths.get(uploadPath).toAbsolutePath().normalize();
-            Path file = base.resolve(filename).normalize();
+            log.info("=== 이미지 서빙 요청 ===");
+            log.info("요청된 파일명: {}", filename);
+            log.info("업로드 경로: {}", uploadPath);
 
-            log.info("=== 이미지 서빙 요청 === filename={}, base={}, file={}", filename, base, file);
+            Path filePath = Paths.get(uploadPath).resolve(filename);
+            log.info("전체 파일 경로: {}", filePath.toString());
 
-            // 경로 이탈 방지 및 존재/읽기 체크
-            if (!file.startsWith(base) || !Files.exists(file) || !Files.isReadable(file)) {
-                log.warn("요청 파일 없음/읽기불가 → 폴백 시도: {}", filename);
-                Path fallback = base.resolve(defaultImage).normalize();
-                if (fallback.startsWith(base) && Files.exists(fallback) && Files.isReadable(fallback)) {
-                    Resource fb = new UrlResource(fallback.toUri());
-                    MediaType fbType = MediaTypeFactory.getMediaType(fb)   // ✅ Resource로 넘김
-                            .orElse(MediaType.IMAGE_JPEG);
-                    return ResponseEntity.ok().contentType(fbType).body(fb);
-                }
+            Resource resource = new UrlResource(filePath.toUri());
+            log.info("리소스 존재: {}", resource.exists());
+            log.info("리소스 읽기 가능: {}", resource.isReadable());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("파일을 찾을 수 없거나 읽을 수 없음: {}", filename);
                 return ResponseEntity.notFound().build();
             }
 
-            Resource resource = new UrlResource(file.toUri());
-            MediaType type = MediaTypeFactory.getMediaType(resource) // ✅ Resource로 넘김
-                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
-
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "image/jpeg";
+            }
+            log.info("컨텐츠 타입: {}", contentType);
 
             return ResponseEntity.ok()
-                    .contentType(type)
+                    .contentType(MediaType.parseMediaType(contentType))
                     .body(resource);
 
         } catch (Exception e) {
-            log.error("이미지 서빙 에러 ({}): {}", filename, e.getMessage(), e);
+            log.error("이미지 서빙 에러: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }

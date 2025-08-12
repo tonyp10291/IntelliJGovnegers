@@ -51,7 +51,7 @@ public class UserSvc {
         user.setRole("ROLE_USER");
         user.setEnabled(true);
         user.setEmailVerified(true);
-        user.setSmsVerified(true);
+        user.setSmsVerified(false);
         user.setPoint(0);
 
         user.setUpw(passwordEncoder.encode(user.getUpw()));
